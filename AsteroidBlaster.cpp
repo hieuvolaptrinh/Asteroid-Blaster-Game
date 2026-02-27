@@ -56,7 +56,7 @@
 #define MAX_B_DAMAGE     10
 
 #define ITEM_DROP_CHANCE 15       /* % */
-#define LEVEL_UP_SCORE   2000     /* score >= level * nay */
+#define LEVEL_UP_SCORE   1000     /* score >= level * nay */
 #define LEVEL_BANNER_FR  90       /* frame hien banner */
 
 #define AST_MIN_R        15
