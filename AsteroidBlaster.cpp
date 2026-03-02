@@ -1,26 +1,15 @@
 /*
- * ============================================================
- *  ASTEROID BLASTER v3.0 – Ban Thien Thach (Ky Nang + Nang Cap)
- *  C/C++ – WinBGIm (graphics.h)  –  1200 x 800
- * ============================================================
- *
- *  COMPILE (Dev-C++ / CodeBlocks + WinBGIm):
- *  ------------------------------------------
- *  g++ AsteroidBlaster.cpp -o AsteroidBlaster.exe ^
- *      -lbgi -lgdi32 -lcomdlg32 -luuid -loleaut32 -lole32
- *
- *  DIEU KHIEN:
- *  -----------
- *  Arrow / WASD : di chuyen phi thuyen
- *  Chuot        : huong ngam (tu dong ban lien tuc)
- *  Phim 1       : Skill BOMB BURST  (no vong tron)
- *  Phim 2       : Skill TIME SLOW   (lam cham asteroid)
- *  Phim 3       : Skill PIERCING BEAM (tia xuyen)
- *  ESC          : thoat
- *
- * ============================================================
- */
+ * graphics.h :
+ *              initwindow(), circle(), line(), rectangle(), bar(),
+ *              fillpoly(), putpixel(), setcolor(), setfillstyle(),
+ *              outtextxy(), mousex(), mousey(), ismouseclick(),
+ *              getmouseclick(), setactivepage(), setvisualpage(),
+ *              delay(), cleardevice(), closegraph()...
 
+ * windows.h  : GetAsyncKeyState() – doc trang thai phim NGAY LAP TUC
+ *              (khong can doi Enter), cho phep nhan giu nhieu phim cung luc.
+ *              GetTickCount() – lay thoi gian hien tai (ms) de tinh cooldown.
+ */
 #include <graphics.h>
 #include <conio.h>
 #include <math.h>
@@ -30,147 +19,236 @@
 #include <stdio.h>
 
 /* ============================================================
- *  SECTION 1 – HANG SO
+ *  HANG SO (Constants)
+ *  Cac gia tri co dinh dung xuyen suot game.
+ *  Doi #define = doi hanh vi game (kich thuoc, toc do, do kho...)
  * ============================================================ */
 
-#define WIDTH            1200
-#define HEIGHT           800
-#define MAX_ASTEROIDS    30
-#define MAX_BULLETS      80
-#define MAX_ITEMS        12
-#define MAX_EXPLOSIONS   35
-#define MAX_STARS        120
+#define WIDTH 1200
+#define HEIGHT 800
+#define MAX_ASTEROIDS 50  /* So thien thach toi da trong mang         */
+#define MAX_BULLETS 80    /* So vien dan toi da tren man hinh         */
+#define MAX_ITEMS 12      /* So vat pham (tinh the) toi da            */
+#define MAX_EXPLOSIONS 35 /* So hieu ung no dong thoi                 */
+#define MAX_STARS 120     /* So ngoi sao nen (tao hieu ung khong gian)*/
 
-#define SHIP_SPEED       5
-#define SHIP_RADIUS      20
-#define BULLET_SPEED     13
-#define BULLET_RADIUS    3
+#define SHIP_SPEED 10   /* Toc do di chuyen phi thuyen (pixel/frame) */
+#define SHIP_RADIUS 20  /* Ban kinh va cham cua phi thuyen (pixel)   */
+#define BULLET_SPEED 13 /* Toc do bay cua vien dan (pixel/frame)     */
+#define BULLET_RADIUS 3 /* Ban kinh vien dan (pixel)                 */
 
-#define DEFAULT_SHOOT_CD 120      /* ms ban dau */
-#define MIN_SHOOT_CD     35       /* cooldown toi thieu */
-#define HIT_COOLDOWN     500      /* ms */
-#define INITIAL_HP       100
-#define HIT_DAMAGE       12
+#define DEFAULT_SHOOT_CD 120 /* Cooldown ban dan mac dinh (ms)            */
+#define MIN_SHOOT_CD 35      /* Cooldown toi thieu khi nang cap toi da    */
+#define HIT_COOLDOWN 500     /* Thoi gian bat tu sau khi bi dam (ms)      */
+#define INITIAL_HP 100       /* Mau HP ban dau cua phi thuyen             */
+#define HIT_DAMAGE 12        /* Sat thuong moi lan bi thien thach dam     */
 
-#define MAX_PELLETS      7
-#define MAX_B_DAMAGE     10
+#define MAX_PELLETS 7   // So vien dan toi da moi phat ban
+#define MAX_B_DAMAGE 10 // Sat thuong toi da moi vien dan
 
-#define ITEM_DROP_CHANCE 15       /* % */
-#define LEVEL_UP_SCORE   1000     /* score >= level * nay */
-#define LEVEL_BANNER_FR  90       /* frame hien banner */
+#define ITEM_DROP_CHANCE 15 /* Xac suat roi tinh the khi asteroid no (%) */
+#define LEVEL_UP_SCORE 1000 /* Diem can de len level: score >= level*nay */
+#define LEVEL_BANNER_FR 90  /* So frame hien banner "LEVEL UP" (~1.5s)   */
 
-#define AST_MIN_R        15
-#define AST_MAX_R        45
-#define AST_SPD_MIN      1.0f
-#define AST_SPD_MAX      3.5f
+#define AST_MIN_R 15      /* Ban kinh thien thach nho nhat (pixel)     */
+#define AST_MAX_R 45      /* Ban kinh thien thach lon nhat (pixel)     */
+#define AST_SPD_MIN 3.0f  /* Toc do roi nho nhat (pixel/frame)         */
+#define AST_SPD_MAX 10.5f /* Toc do roi lon nhat (pixel/frame)         */
 
-/* Vat pham: chi 1 loai – Tinh the suc manh (Power Crystal) */
-static int gItemCycle = 0;       /* Bien xoay vong nang cap */
+/* Toa do nut MENU (goc trai tren) */
+#define MENU_BTN_X1 10
+#define MENU_BTN_Y1 10
+#define MENU_BTN_X2 55
+#define MENU_BTN_Y2 38
+
+/* Toa do overlay panel */
+#define PANEL_X1 (WIDTH / 2 - 180)
+#define PANEL_Y1 (HEIGHT / 2 - 130)
+#define PANEL_X2 (WIDTH / 2 + 180)
+#define PANEL_Y2 (HEIGHT / 2 + 100)
+
+/* Toa do nut CONTINUE */
+#define CONT_X1 (WIDTH / 2 - 120)
+#define CONT_Y1 (HEIGHT / 2 - 30)
+#define CONT_X2 (WIDTH / 2 + 120)
+#define CONT_Y2 (HEIGHT / 2 + 10)
+
+/* Toa do nut EXIT */
+#define EXIT_X1 (WIDTH / 2 - 120)
+#define EXIT_Y1 (HEIGHT / 2 + 30)
+#define EXIT_X2 (WIDTH / 2 + 120)
+#define EXIT_Y2 (HEIGHT / 2 + 70)
+
+/*
+ * gItemCycle: Bien toan cuc theo doi thu tu nang cap tinh the.
+ * Moi lan nguoi choi nhat tinh the, chi so nay tang 1.
+ * Nang cap xoay vong: pelletsPerShot -> bulletDamage -> shootCooldown -> lap lai.
+ */
+static int gItemCycle = 0;
 
 #ifndef M_PI
-#define M_PI 3.14159265358979f
+#define M_PI 3.14159265358979f /* Hang so Pi (dung tinh goc, ve hinh tron) */
 #endif
 
-/* ============================================================
- *  SECTION 2 – STRUCT
- * ============================================================ */
-
-typedef struct {
+/*
+ * Ship – Phi thuyen cua nguoi choi
+ * x, y           : toa do tam phi thuyen (float de di chuyen muot)
+ * radius         : ban kinh va cham – dung de kiem tra va cham voi asteroid/item
+ * speed          : so pixel di chuyen moi frame khi nhan phim
+ * bulletDamage   : sat thuong moi vien dan (tang khi nhat tinh the)
+ * pelletsPerShot : so vien dan phong ra moi lan ban (tang khi nhat tinh the)
+ * shootCooldown  : thoi gian giua 2 lan ban (ms), giam = ban nhanh hon
+ */
+typedef struct
+{
     float x, y;
-    int   radius, speed;
-    /* Thong so dan */
-    int   bulletDamage;       /* sat thuong moi vien */
-    int   pelletsPerShot;     /* so vien / phat ban   */
-    int   shootCooldown;      /* ms giua cac phat     */
+    int radius, speed;
+    int bulletDamage;
+    int pelletsPerShot;
+    int shootCooldown;
 } Ship;
 
-typedef struct {
+/*
+ * Bullet – Vien dan
+ * x, y    : toa do hien tai cua dan
+ * dx, dy  : vector van toc (da nhan voi BULLET_SPEED)
+ *           Tinh bang: dx = cosf(goc) * BULLET_SPEED
+ *                      dy = sinf(goc) * BULLET_SPEED
+ * active  : 1 = dang bay, 0 = khong hoat dong (co the tai su dung slot)
+ * radius  : ban kinh dan (de ve va kiem tra va cham)
+ * damage  : sat thuong gay cho asteroid khi trung
+ */
+typedef struct
+{
     float x, y, dx, dy;
-    int   active, radius, damage;
+    int active, radius, damage;
 } Bullet;
 
-typedef struct {
+/*
+ * Asteroid – Thien thach
+ * x, y      : toa do tam
+ * vx, vy    : van toc theo truc X va Y (vy > 0 = roi xuong,
+ *             vx != 0 = roi cheo trai/phai)
+ * radius    : ban kinh (ngau nhien tu AST_MIN_R den AST_MAX_R)
+ * active    : 1 = dang hoat dong tren man hinh
+ * seed      : so ngau nhien co dinh – dung de ve hinh polygon ON DINH
+ *             (khong random lai moi frame -> tranh nhap nhay)
+ * rot       : goc xoay hien tai (radian) – lam asteroid quay khi roi
+ * rotSpeed  : toc do xoay (rad/frame)
+ */
+typedef struct
+{
     float x, y;
     float vx, vy;
-    int   radius, active;
-    int   seed;               /* polygon on dinh */
+    int radius, active;
+    int seed;
     float rot, rotSpeed;
-    int   hp, maxHp;
+    int hp, maxHp;
 } Asteroid;
 
-typedef struct {
+/*
+ * Item – Tinh the nang cap (Power Crystal)
+ * x, y     : toa do hien tai
+ * vy       : toc do roi xuong
+ * active   : 1 = dang ton tai tren man hinh
+ * radius   : ban kinh de ve va kiem tra va cham voi ship
+ * sparkle  : bo dem frame – dung tao hieu ung lap lanh (doi mau, xoay tia)
+ */
+typedef struct
+{
     float x, y, vy;
-    int   active, radius;
-    int   sparkle;            /* frame counter cho hieu ung lap lanh */
+    int active, radius;
+    int sparkle;
 } Item;
 
-typedef struct {
+typedef struct
+{
     float x, y, maxRadius;
-    int   frame, maxFrames, active;
+    int frame, maxFrames, active;
 } Explosion;
 
-/* --- He thong 3 ky nang --- */
-typedef struct {
-    /* Skill 1 – Bomb Burst */
-    unsigned long bombCD;           /* tong CD (ms) */
-    unsigned long bombLast;         /* thoi diem dung gan nhat */
-    int   bombActive;               /* hieu ung dang chay? */
-    int   bombFrame;
-    float bombX, bombY, bombRadius;
-    int   bombDmg, bombDmgDone;
+/*
 
-    /* Skill 2 – Time Slow */
+ * Skill 1 – BOMB BURST: no vong tron tai vi tri ship
+ *   bombRadius : ban kinh vung no (160 pixel)
+ *   bombDmg    : sat thuong gay len asteroid trong vung
+ *   bombDmgDone: co danh dau "da ap dung dame" (chi dame 1 lan)
+ *   bombFrame  : frame animation cua vong no
+ *
+ * Skill 2 – TIME SLOW: lam cham asteroid trong 4 giay
+ *   slowDur    : thoi gian hieu luc (4000 ms)
+ *   slowFactor : he so nhan vao toc do asteroid (0.35 = cham 65%)
+ *
+ * Skill 3 – PIERCING BEAM: tia xuyen thang theo huong chuot
+ *   beamDur    : thoi gian hien tia (450 ms)
+ *   beamDmg    : sat thuong len moi asteroid bi tia cat qua
+ *   beamSX/SY  : diem bat dau tia (vi tri ship luc ban)
+ *   beamDX/DY  : huong tia (vector don vi da normalize)
+ */
+typedef struct
+{
+    unsigned long bombCD, bombLast;
+    int bombActive, bombFrame;
+    float bombX, bombY, bombRadius;
+    int bombDmg, bombDmgDone;
+
     unsigned long slowCD, slowLast, slowDur;
-    int   slowActive;
+    int slowActive;
     float slowFactor;
 
-    /* Skill 3 – Piercing Beam */
     unsigned long beamCD, beamLast, beamDur;
-    int   beamActive, beamDmg, beamDmgDone;
+    int beamActive, beamDmg, beamDmgDone;
     float beamDX, beamDY, beamSX, beamSY;
 } SkillSystem;
 
-/* Cau hinh do kho (thay doi theo level) */
-typedef struct {
-    int   activeAsteroids;
+/*
+ * GameConfig – Cau hinh do kho (thay doi moi khi len level)
+ * activeAsteroids : so asteroid hoat dong cung luc (tang theo level)
+ * astSpeedMin/Max : khoang toc do roi (tang theo level)
+ * angleVariety    : do da dang goc roi (0 = thang, lon = roi cheo nhieu)
+ * baseAstHp       : mau co ban cua asteroid tai level hien tai
+ */
+typedef struct
+{
+    int activeAsteroids;
     float astSpeedMin, astSpeedMax;
     float angleVariety;
-    int   baseAstHp;              /* maxHp cua asteroid */
+    int baseAstHp;
 } GameConfig;
-
-/* ============================================================
- *  SECTION 3 – BIEN TOAN CUC + TIEN ICH
- * ============================================================ */
-
 static GameConfig gCfg;
 
-/* Sao nen (khoi tao 1 lan) */
 static int sX[MAX_STARS], sY[MAX_STARS], sB[MAX_STARS];
 static int starsReady = 0;
 
-/* Pseudo-random on dinh theo seed (dung ve asteroid) */
-static unsigned int seedRand(unsigned int s, int i) {
+static unsigned int seedRand(unsigned int s, int i)
+{
     s = s * 1103515245u + 12345u + (unsigned int)i * 2654435761u;
     return s;
 }
 
-/* Kiem tra beam cat hinh tron */
+/*
+ * beamHitsCircle(): Kiem tra tia (beam) co cat qua hinh tron khong.
+ * Dung cho Skill 3 (Piercing Beam) – xac dinh asteroid nao bi tia ban trung.
+ * Tham so: (sx,sy) diem bat dau, (dx,dy) huong tia (da normalize),
+ *          (cx,cy) tam hinh tron, cr ban kinh.
+ * Tra ve: 1 = trung, 0 = truot.
+ */
 static int beamHitsCircle(float sx, float sy, float dx, float dy,
-                          float cx, float cy, float cr) {
+                          float cx, float cy, float cr)
+{
     float vx = cx - sx, vy = cy - sy;
     float proj = vx * dx + vy * dy;
-    if (proj < 0) return 0;
+    if (proj < 0)
+        return 0;
     float px = vx - proj * dx, py = vy - proj * dy;
     return (sqrtf(px * px + py * py) < cr) ? 1 : 0;
 }
 
-/* ============================================================
- *  SECTION 4 – KHOI TAO (Init)
- * ============================================================ */
-
-void initStars(void) {
+void initStars(void)
+{
     int i;
-    for (i = 0; i < MAX_STARS; i++) {
+    for (i = 0; i < MAX_STARS; i++)
+    {
         sX[i] = rand() % WIDTH;
         sY[i] = rand() % HEIGHT;
         sB[i] = rand() % 3;
@@ -178,176 +256,263 @@ void initStars(void) {
     starsReady = 1;
 }
 
-void updateDifficultyByLevel(int level, GameConfig *cfg) {
+// updateDifficultyByLevel(): Cap nhat cau hinh do kho dua tren level hien tai.
+
+void updateDifficultyByLevel(int level, GameConfig *cfg)
+{
+    /* So asteroid toi da tang 2 moi level, nhung khong qua MAX_ASTEROIDS */
     cfg->activeAsteroids = 8 + level * 2;
     if (cfg->activeAsteroids > MAX_ASTEROIDS)
-        cfg->activeAsteroids = MAX_ASTEROIDS;
-    cfg->astSpeedMin  = AST_SPD_MIN + level * 0.12f;
-    cfg->astSpeedMax  = AST_SPD_MAX + level * 0.22f;
+        cfg->activeAsteroids = MAX_ASTEROIDS; /* Gioi han tren */
+    /* Toc do roi tang nhe moi level (asteroid nhanh dan) */
+    cfg->astSpeedMin = AST_SPD_MIN + level * 0.12f;
+    cfg->astSpeedMax = AST_SPD_MAX + level * 0.22f;
+    /* Goc roi chenh lech nhieu hon -> asteroid bay cheo hon */
     cfg->angleVariety = 0.3f + level * 0.08f;
-    if (cfg->angleVariety > 1.2f) cfg->angleVariety = 1.2f;
+    if (cfg->angleVariety > 1.2f)
+        cfg->angleVariety = 1.2f; /* Gioi han tren */
+    /* Mau asteroid tang: level 1 = 1HP, level 2-3 = 2HP, v.v. */
     cfg->baseAstHp = 1 + level / 2;
 }
 
-void initShip(Ship *s) {
-    s->x = WIDTH / 2.0f;  s->y = HEIGHT - 80.0f;
-    s->radius = SHIP_RADIUS;  s->speed = SHIP_SPEED;
-    s->bulletDamage   = 1;
-    s->pelletsPerShot = 1;
-    s->shootCooldown  = DEFAULT_SHOOT_CD;
+void initShip(Ship *s)
+{
+    s->x = WIDTH / 2.0f;
+    s->y = HEIGHT - 80.0f; /* Giua chieu ngang, cach day 80px */
+    s->radius = SHIP_RADIUS;
+    s->speed = SHIP_SPEED;
+    s->bulletDamage = 1;                 /* Sat thuong 1 diem/vien ban dau */
+    s->pelletsPerShot = 1;               /* Ban 1 vien moi phat (tang khi nhat item) */
+    s->shootCooldown = DEFAULT_SHOOT_CD; /* Cooldown 120ms = khoang 8 phat/giay */
 }
 
-void initBullet(Bullet *b) {
-    b->x = b->y = b->dx = b->dy = 0;
-    b->active = 0; b->radius = BULLET_RADIUS; b->damage = 1;
+void initBullet(Bullet *b)
+{
+    b->x = b->y = b->dx = b->dy = 0; /* Reset toa do va van toc ve 0 */
+    b->active = 0;
+    b->radius = BULLET_RADIUS;
+    b->damage = 1;
 }
 
-void initAsteroid(Asteroid *a, int level, GameConfig *cfg) {
+/*
+ * initAsteroid(): Tao 1 thien thach moi o vi tri ngau nhien PHIA TREN man hinh.
+ */
+void initAsteroid(Asteroid *a, int level, GameConfig *cfg)
+{
     float spd, mxA;
+
     a->radius = AST_MIN_R + rand() % (AST_MAX_R - AST_MIN_R + 1);
+    /* Vi tri X ngau nhien, dam bao asteroid nam trong man hinh */
     a->x = (float)(a->radius + rand() % (WIDTH - 2 * a->radius));
+    /* Bat dau tren man hinh (y am), khoang cach ngau nhien de asteroid xuat hien dan */
     a->y = (float)(-(rand() % 400) - a->radius);
 
     spd = cfg->astSpeedMin + (rand() % 100) / 100.0f * (cfg->astSpeedMax - cfg->astSpeedMin);
     mxA = cfg->angleVariety;
     a->vy = spd;
+
     a->vx = ((rand() % 200 - 100) / 100.0f) * mxA * spd * 0.4f;
 
-    a->seed     = rand();
-    a->rot      = 0;
+    a->seed = rand();
+    a->rot = 0;
+
     a->rotSpeed = ((rand() % 100) - 50) / 1500.0f;
-    a->maxHp    = cfg->baseAstHp;
-    a->hp       = a->maxHp;
-    a->active   = 1;
+    a->maxHp = cfg->baseAstHp;
+    a->hp = a->maxHp;
+    a->active = 1;
 }
 
-void initAllAsteroids(Asteroid ast[], int n, int level, GameConfig *cfg) {
+/* initAllAsteroids(): Khoi tao toan bo mang asteroid khi bat dau game.
+ * Chi kich hoat so luong tuong ung voi do kho hien tai (cfg->activeAsteroids).
+ * Phan con lai active=0 (chua xuat hien), se duoc bat khi level tang. */
+void initAllAsteroids(Asteroid ast[], int n, int level, GameConfig *cfg)
+{
     int i;
-    for (i = 0; i < n; i++) {
+    for (i = 0; i < n; i++)
+    {
         initAsteroid(&ast[i], level, cfg);
-        if (i >= cfg->activeAsteroids) ast[i].active = 0;
+        /* Neu vuot so luong cho phep: tat bo, cho toi khi level tang */
+        if (i >= cfg->activeAsteroids)
+            ast[i].active = 0;
     }
 }
 
-void initSkillSystem(SkillSystem *sk) {
-    sk->bombCD = 8000;  sk->bombLast = 0;
-    sk->bombActive = 0; sk->bombFrame = 0;
-    sk->bombRadius = 160.0f; sk->bombDmg = 8;
-    sk->bombDmgDone = 0;
+void initSkillSystem(SkillSystem *sk)
+{
+    /* Skill 1 – Bomb Burst: CD 8 giay, ban kinh 160px, dame 8 */
+    sk->bombCD = 8000;
+    sk->bombLast = 0;
+    sk->bombActive = 0;
+    sk->bombFrame = 0;
+    sk->bombRadius = 160.0f;
+    sk->bombDmg = 8;
+    sk->bombDmgDone = 0; /* Co ngan dame bi ap dung nhieu lan */
 
-    sk->slowCD = 12000; sk->slowLast = 0;
-    sk->slowDur = 4000; sk->slowActive = 0;
-    sk->slowFactor = 0.35f;
+    /* Skill 2 – Time Slow: CD 12 giay, ham cham 4 giay, he so 0.35 */
+    sk->slowCD = 12000;
+    sk->slowLast = 0;
+    sk->slowDur = 4000;
+    sk->slowActive = 0;
+    sk->slowFactor = 0.35f; /* Asteroid chi di chuyen 35% toc do binh thuong */
 
-    sk->beamCD = 10000; sk->beamLast = 0;
-    sk->beamDur = 450;  sk->beamActive = 0;
-    sk->beamDmg = 12;   sk->beamDmgDone = 0;
+    /* Skill 3 – Piercing Beam: CD 10 giay, hien tia 450ms, dame 12 */
+    sk->beamCD = 10000;
+    sk->beamLast = 0;
+    sk->beamDur = 450;
+    sk->beamActive = 0;
+    sk->beamDmg = 12;
+    sk->beamDmgDone = 0;
 }
 
+/* initGame(): Khoi dong toan bo trang thai game ve gia tri ban dau.
+ * Goi truoc khi vao vong lap chinh. Reset diem, mau, level va moi doi tuong.
+ * Dau vao: con tro den tat ca mang doi tuong va bien trang thai game. */
 void initGame(Ship *ship, Asteroid ast[], Bullet bul[],
               Item items[], Explosion exps[], SkillSystem *sk,
-              int *score, int *hp, int *level) {
+              int *score, int *hp, int *level)
+{
     int i;
+
     srand((unsigned int)time(NULL));
-    *level = 1; *score = 0; *hp = INITIAL_HP;
+    *level = 1;
+    *score = 0;
+    *hp = INITIAL_HP;
     updateDifficultyByLevel(*level, &gCfg);
     initShip(ship);
     initAllAsteroids(ast, MAX_ASTEROIDS, *level, &gCfg);
-    for (i = 0; i < MAX_BULLETS; i++) initBullet(&bul[i]);
-    for (i = 0; i < MAX_ITEMS; i++) { items[i].active = 0; items[i].radius = 12; }
-    for (i = 0; i < MAX_EXPLOSIONS; i++) exps[i].active = 0;
+    for (i = 0; i < MAX_BULLETS; i++)
+        initBullet(&bul[i]); /* Tat toan bo dan */
+    for (i = 0; i < MAX_ITEMS; i++)
+    {
+        items[i].active = 0;
+        items[i].radius = 12;
+    } /* Tat tinh the */
+    for (i = 0; i < MAX_EXPLOSIONS; i++)
+        exps[i].active = 0; /* Tat hieu ung no */
     initSkillSystem(sk);
-    if (!starsReady) initStars();
+    if (!starsReady)
+        initStars(); /* Chi tao sao 1 lan duy nhat */
 }
 
-/* ============================================================
- *  SECTION 5 – INPUT
- * ============================================================ */
-
-void handleKeyboardMove(Ship *s) {
-    if (GetAsyncKeyState(VK_LEFT)  & 0x8000 || GetAsyncKeyState('A') & 0x8000) s->x -= s->speed;
-    if (GetAsyncKeyState(VK_RIGHT) & 0x8000 || GetAsyncKeyState('D') & 0x8000) s->x += s->speed;
-    if (GetAsyncKeyState(VK_UP)    & 0x8000 || GetAsyncKeyState('W') & 0x8000) s->y -= s->speed;
-    if (GetAsyncKeyState(VK_DOWN)  & 0x8000 || GetAsyncKeyState('S') & 0x8000) s->y += s->speed;
+void handleKeyboardMove(Ship *s)
+{
+    /* GetAsyncKeyState(VK_LEFT) & 0x8000: kiem tra phim mui ten TRAI dang giu */
+    if (GetAsyncKeyState(VK_LEFT) & 0x8000 || GetAsyncKeyState('A') & 0x8000)
+        s->x -= s->speed; /* Di trai */
+    if (GetAsyncKeyState(VK_RIGHT) & 0x8000 || GetAsyncKeyState('D') & 0x8000)
+        s->x += s->speed; /* Di phai */
+    if (GetAsyncKeyState(VK_UP) & 0x8000 || GetAsyncKeyState('W') & 0x8000)
+        s->y -= s->speed; /* Di len (y giam) */
+    if (GetAsyncKeyState(VK_DOWN) & 0x8000 || GetAsyncKeyState('S') & 0x8000)
+        s->y += s->speed; /* Di xuong */
 }
 
-void handleMouse(int *mx, int *my) {
-    *mx = mousex(); *my = mousey();
+// handleMouse(): Cap nhat toa do con tro chuot moi frame.
+void handleMouse(int *mx, int *my)
+{
+    *mx = mousex(); /* Lay toa do X chuot (pixel) trong cua so WinBGIm */
+    *my = mousey(); /* Lay toa do Y chuot (pixel) trong cua so WinBGIm */
 }
 
-/*
- * handleSkillsInput: kiem tra phim 1/2/3, kich hoat skill neu het CD
- */
+// handleSkillsInput(): Kiem tra phim 1/2/3, kich hoat skill neu het CD.
+
 void handleSkillsInput(SkillSystem *sk, Ship *ship,
-                       int mx, int my, unsigned long now) {
-    /* Skill 1 – Bomb Burst */
-    if (GetAsyncKeyState('1') & 0x8000) {
-        if (now - sk->bombLast >= sk->bombCD) {
-            sk->bombLast     = now;
-            sk->bombActive   = 1;
-            sk->bombFrame    = 0;
-            sk->bombX        = ship->x;
-            sk->bombY        = ship->y;
-            sk->bombDmgDone  = 0;
+                       int mx, int my, unsigned long now)
+{
+    /* Skill 1 – Bomb Burst: phim '1', CD 8000ms */
+    if (GetAsyncKeyState('1') & 0x8000)
+    {
+        /* now - bombLast >= bombCD: kiem tra da het cooldown chua */
+        if (now - sk->bombLast >= sk->bombCD)
+        {
+            sk->bombLast = now;  /* Ghi lai thoi diem vua dung */
+            sk->bombActive = 1;  /* Bat hieu ung no */
+            sk->bombFrame = 0;   /* Reset frame animation */
+            sk->bombX = ship->x; /* Vi tri no = vi tri ship luc ban */
+            sk->bombY = ship->y;
+            sk->bombDmgDone = 0; /* Cho phep ap dung dame lan nay */
         }
     }
-    /* Skill 2 – Time Slow */
-    if (GetAsyncKeyState('2') & 0x8000) {
-        if (now - sk->slowLast >= sk->slowCD) {
-            sk->slowLast   = now;
-            sk->slowActive = 1;
+    /* Skill 2 – Time Slow: phim '2', CD 12000ms */
+    if (GetAsyncKeyState('2') & 0x8000)
+    {
+        if (now - sk->slowLast >= sk->slowCD)
+        {
+            sk->slowLast = now;
+            sk->slowActive = 1; /* Bat trang thai lam cham */
         }
     }
-    /* Skill 3 – Piercing Beam */
-    if (GetAsyncKeyState('3') & 0x8000) {
-        if (now - sk->beamLast >= sk->beamCD) {
+    /* Skill 3 – Piercing Beam: phim '3', CD 10000ms */
+    if (GetAsyncKeyState('3') & 0x8000)
+    {
+        if (now - sk->beamLast >= sk->beamCD)
+        {
+            /* Tinh huong tia tu ship den vi tri chuot */
             float dx = mx - ship->x, dy = my - ship->y;
-            float ln = sqrtf(dx * dx + dy * dy);
-            if (ln < 1.0f) return;
-            sk->beamLast    = now;
-            sk->beamActive  = 1;
+            float ln = sqrtf(dx * dx + dy * dy); /* Do dai vector huong */
+            if (ln < 1.0f)
+                return; /* Chuot trung ship, bo qua */
+            sk->beamLast = now;
+            sk->beamActive = 1;
             sk->beamDmgDone = 0;
-            sk->beamSX = ship->x; sk->beamSY = ship->y;
-            sk->beamDX = dx / ln;  sk->beamDY = dy / ln;
+            sk->beamSX = ship->x;
+            sk->beamSY = ship->y; /* Diem bat dau tia */
+            /* Normalize: chia cho do dai de co vector don vi (dai = 1) */
+            sk->beamDX = dx / ln;
+            sk->beamDY = dy / ln;
         }
     }
 }
 
-/* ============================================================
- *  SECTION 6 – UPDATE
- * ============================================================ */
-
-void updateShip(Ship *s) {
-    if (s->x - s->radius < 0)      s->x = (float)s->radius;
-    if (s->x + s->radius > WIDTH)   s->x = (float)(WIDTH - s->radius);
-    if (s->y - s->radius < 0)      s->y = (float)s->radius;
-    if (s->y + s->radius > HEIGHT)  s->y = (float)(HEIGHT - s->radius);
+void updateShip(Ship *s)
+{
+    if (s->x - s->radius < 0)
+        s->x = (float)s->radius; /* Can bien trai */
+    if (s->x + s->radius > WIDTH)
+        s->x = (float)(WIDTH - s->radius); /* Can bien phai */
+    if (s->y - s->radius < 0)
+        s->y = (float)s->radius; /* Can bien tren */
+    if (s->y + s->radius > HEIGHT)
+        s->y = (float)(HEIGHT - s->radius); /* Can bien duoi */
 }
 
-/* Tim slot dan trong */
-static int freeBullet(Bullet b[], int n) {
-    int i; for (i = 0; i < n; i++) if (!b[i].active) return i; return -1;
+static int freeBullet(Bullet b[], int n)
+{
+    int i;
+    for (i = 0; i < n; i++)
+        if (!b[i].active)
+            return i;
+    return -1;
 }
 
-/*
- * shootPellets: tao N vien dan (pelletsPerShot) xoe nhe
- */
-void shootPellets(Ship *ship, Bullet bul[], int n, float dirX, float dirY) {
+// shootPellets(): Tao N vien dan (N = pelletsPerShot) theo huong (dirX, dirY).
+
+void shootPellets(Ship *ship, Bullet bul[], int n, float dirX, float dirY)
+{
     int p, idx;
+    /* atan2f(y, x): tinh goc (radian) cua vector (dirX, dirY) so voi truc X.
+     * Day la ham math.h, bien vector huong thanh goc de tinh spread sau do. */
     float base = atan2f(dirY, dirX);
-    int   cnt  = ship->pelletsPerShot;
-    /* spread nhe khi nhieu vien: tong ~0.08 rad/vien, cap 0.5 rad */
+    int cnt = ship->pelletsPerShot;
+    /* Neu ban nhieu vien: trai cac goc xung quanh goc chinh trong khoang totalSpread */
     float totalSpread = (cnt > 1) ? (cnt - 1) * 0.08f : 0;
-    if (totalSpread > 0.5f) totalSpread = 0.5f;
+    if (totalSpread > 0.5f)
+        totalSpread = 0.5f; /* Gioi han spread toi da ~28 do */
 
-    for (p = 0; p < cnt; p++) {
+    for (p = 0; p < cnt; p++)
+    {
+        /* off: goc lech cua vien thu p so voi trung tam, phan bo deu */
         float off = 0;
-        if (cnt > 1) off = -totalSpread / 2.0f + totalSpread * p / (cnt - 1);
-        float a = base + off;
+        if (cnt > 1)
+            off = -totalSpread / 2.0f + totalSpread * p / (cnt - 1);
+        float a = base + off; /* Goc thuc cua vien dan nay */
 
-        idx = freeBullet(bul, n);
-        if (idx < 0) return;
-        bul[idx].x  = ship->x;  bul[idx].y  = ship->y;
+        idx = freeBullet(bul, n); /* Tim slot rong trong mang dan */
+        if (idx < 0)
+            return; /* Mang dan day, bo qua */
+        bul[idx].x = ship->x;
+        bul[idx].y = ship->y;
+        /* cosf(a) va sinf(a): chuyen goc thanh thanh phan x, y cua vector van toc */
         bul[idx].dx = cosf(a) * BULLET_SPEED;
         bul[idx].dy = sinf(a) * BULLET_SPEED;
         bul[idx].active = 1;
@@ -356,188 +521,286 @@ void shootPellets(Ship *ship, Bullet bul[], int n, float dirX, float dirY) {
     }
 }
 
+// tryAutoShoot(): Tu dong ban dan moi khi het cooldown.
+
 void tryAutoShoot(Ship *ship, Bullet bul[], int n,
-                  int mx, int my, unsigned long *lastShot) {
+                  int mx, int my, unsigned long *lastShot)
+{
+    /* GetTickCount(): lay so ms ke tu khi may khoi dong (Windows API) */
     unsigned long now = GetTickCount();
-    if (now - *lastShot < (unsigned long)ship->shootCooldown) return;
+    /* Neu chua het cooldown thi chua ban */
+    if (now - *lastShot < (unsigned long)ship->shootCooldown)
+        return;
+    /* Tinh vector huong tu ship den chuot */
     float dx = mx - ship->x, dy = my - ship->y;
-    float ln = sqrtf(dx * dx + dy * dy);
-    if (ln < 5.0f) return;
+    float ln = sqrtf(dx * dx + dy * dy); /* Do dai vector (khoang cach) */
+    if (ln < 5.0f)
+        return; /* Chuot qua gan ship: bo qua de tranh chia cho 0 */
+    /* Normalize: chia dx,dy cho do dai -> vector don vi (do dai = 1) */
     shootPellets(ship, bul, n, dx / ln, dy / ln);
-    *lastShot = now;
+    *lastShot = now; /* Ghi lai thoi diem vua ban */
 }
 
-void updateBullets(Bullet b[], int n) {
+/* updateBullets(): Di chuyen toan bo vien dan dang hoat dong moi frame.
+ * Moi vien cong them (dx, dy) vao toa do -> dan bay theo duong thang.
+ * Neu dan ra ngoai man hinh: tat di (active=0) de thu hoi slot. */
+void updateBullets(Bullet b[], int n)
+{
     int i;
-    for (i = 0; i < n; i++) {
-        if (!b[i].active) continue;
-        b[i].x += b[i].dx;  b[i].y += b[i].dy;
+    for (i = 0; i < n; i++)
+    {
+        if (!b[i].active)
+            continue; /* Bo qua dan chua hoat dong */
+        b[i].x += b[i].dx;
+        b[i].y += b[i].dy; /* Di chuyen theo van toc */
+        /* Tat dan khi ra ngoai vung nhin (20px lem) */
         if (b[i].x < -20 || b[i].x > WIDTH + 20 ||
             b[i].y < -20 || b[i].y > HEIGHT + 20)
             b[i].active = 0;
     }
 }
 
-void updateAsteroids(Asteroid a[], int n, int level, float spdMul) {
+// updateAsteroids(): Di chuyen va xoay cac asteroid moi frame.
+void updateAsteroids(Asteroid a[], int n, int level, float spdMul)
+{
     int i;
-    for (i = 0; i < n; i++) {
-        if (!a[i].active) continue;
-        a[i].x   += a[i].vx * spdMul;
-        a[i].y   += a[i].vy * spdMul;
-        a[i].rot += a[i].rotSpeed;
+    for (i = 0; i < n; i++)
+    {
+        if (!a[i].active)
+            continue;
+        /* Di chuyen: cong van toc co nhan he so spdMul (Slow skill giam xuong) */
+        a[i].x += a[i].vx * spdMul;
+        a[i].y += a[i].vy * spdMul;
+        a[i].rot += a[i].rotSpeed; /* Xoay them goc moi frame */
+        /* Kiem tra ra khoi man hinh (duoi, trai, phai): reset lai tu tren */
         if (a[i].y - a[i].radius > HEIGHT ||
             a[i].x + a[i].radius < -60 ||
-            a[i].x - a[i].radius > WIDTH + 60) {
-            initAsteroid(&a[i], level, &gCfg);
+            a[i].x - a[i].radius > WIDTH + 60)
+        {
+            initAsteroid(&a[i], level, &gCfg); /* Tao lai asteroid moi */
         }
     }
-    /* Dam bao so asteroid active = cfg */
+    /* Neu co slot inactive ma so asteroid < gioi han: kich hoat them */
     for (i = 0; i < n && i < gCfg.activeAsteroids; i++)
-        if (!a[i].active) initAsteroid(&a[i], level, &gCfg);
+        if (!a[i].active)
+            initAsteroid(&a[i], level, &gCfg);
 }
 
-void updateItems(Item it[], int n) {
-    int i;
-    for (i = 0; i < n; i++) {
-        if (!it[i].active) continue;
-        it[i].y += it[i].vy;
-        if (it[i].y > HEIGHT + 20) it[i].active = 0;
-    }
-}
-
-void updateExplosions(Explosion e[], int n) {
-    int i;
-    for (i = 0; i < n; i++) {
-        if (!e[i].active) continue;
-        e[i].frame++;
-        if (e[i].frame >= e[i].maxFrames) e[i].active = 0;
-    }
-}
-
-/*
- * updateSkillEffects: quan ly thoi gian hieu ung skill
+/* updateItems(): Lam tinh the roi xuong moi frame.
  */
-void updateSkillEffects(SkillSystem *sk, unsigned long now) {
-    /* Bomb animation (~20 frame) */
-    if (sk->bombActive) {
-        sk->bombFrame++;
-        if (sk->bombFrame >= 22) sk->bombActive = 0;
+void updateItems(Item it[], int n)
+{
+    int i;
+    for (i = 0; i < n; i++)
+    {
+        if (!it[i].active)
+            continue;
+        it[i].y += it[i].vy; /* Roi xuong moi frame */
+        if (it[i].y > HEIGHT + 20)
+            it[i].active = 0; /* Ra khoi man hinh: mat */
     }
-    /* Time Slow het han */
-    if (sk->slowActive) {
+}
+
+// updateExplosions(): Dem frame animation no, tat khi xong.
+void updateExplosions(Explosion e[], int n)
+{
+    int i;
+    for (i = 0; i < n; i++)
+    {
+        if (!e[i].active)
+            continue;
+        e[i].frame++; /* Tien sang frame tiep theo cua animation no */
+        if (e[i].frame >= e[i].maxFrames)
+            e[i].active = 0; /* Xong animation: tat */
+    }
+}
+
+// updateSkillEffects(): Kiem tra va cap nhat trang thai hieu luc cua 3 skill moi frame.
+
+void updateSkillEffects(SkillSystem *sk, unsigned long now)
+{
+    /* Bomb: tang frame animation ~20 buoc, sau do tat */
+    if (sk->bombActive)
+    {
+        sk->bombFrame++; /* Moi frame animation no ra them */
+        if (sk->bombFrame >= 22)
+            sk->bombActive = 0; /* Het animation: tat */
+    }
+    /* Time Slow: tat khi da het slowDur ms ke tu luc kich hoat */
+    if (sk->slowActive)
+    {
+        /* now - slowLast: thoi gian da troi ke tu kich hoat */
         if (now - sk->slowLast >= sk->slowDur)
-            sk->slowActive = 0;
+            sk->slowActive = 0; /* Het 4 giay: tra toc do binh thuong */
     }
-    /* Beam het han */
-    if (sk->beamActive) {
+    /* Beam: tat khi da hien du beamDur ms (450ms) */
+    if (sk->beamActive)
+    {
         if (now - sk->beamLast >= sk->beamDur)
-            sk->beamActive = 0;
+            sk->beamActive = 0; /* Tat tia sau 450ms */
     }
 }
 
 /* ============================================================
- *  SECTION 7 – VA CHAM + ITEM + SKILL DAMAGE
+ *  VA CHAM + ITEM + SKILL DAMAGE
+ *  VA CHAM HINH TRON (Circle Collision):
+ *    Hai hinh tron va cham khi KHOANG CACH giua 2 tam < tong ban kinh.
+ *    Khoang cach = sqrtf((x2-x1)^2 + (y2-y1)^2)
+ *    Neu khoang cach < r1 + r2 -> TRUNG (va cham).
  * ============================================================ */
 
+/*
+ * checkCircleCollision(): Kiem tra 2 hinh tron co chong len nhau khong.
+ */
 int checkCircleCollision(float x1, float y1, float r1,
-                         float x2, float y2, float r2) {
+                         float x2, float y2, float r2)
+{
     float dx = x2 - x1, dy = y2 - y1;
     return (sqrtf(dx * dx + dy * dy) < r1 + r2) ? 1 : 0;
 }
 
-void spawnExplosion(Explosion e[], int n, float x, float y, float mr) {
+// spawnExplosion(): Tao hieu ung no tai vi tri (x, y) voi ban kinh toi da mr.
+
+void spawnExplosion(Explosion e[], int n, float x, float y, float mr)
+{
     int i;
-    for (i = 0; i < n; i++) {
-        if (!e[i].active) {
-            e[i].x = x; e[i].y = y; e[i].maxRadius = mr;
-            e[i].frame = 0; e[i].maxFrames = 12; e[i].active = 1;
+    for (i = 0; i < n; i++)
+    {
+        if (!e[i].active)
+        {
+            e[i].x = x;
+            e[i].y = y;
+            e[i].maxRadius = mr;
+            e[i].frame = 0;
+            e[i].maxFrames = 12;
+            e[i].active = 1;
+            return; /* Chi can 1 slot, tim duoc la thoat */
+        }
+    }
+}
+
+// spawnItem(): Tao tinh the roi tai vi tri (x, y) khi asteroid bi no.
+
+void spawnItem(Item it[], int n, float x, float y)
+{
+    int i;
+    for (i = 0; i < n; i++)
+    {
+        if (!it[i].active)
+        {
+            it[i].x = x;
+            it[i].y = y;
+            it[i].vy = 1.5f; /* Toc do roi xuong */
+            it[i].active = 1;
+            it[i].radius = 13;
+            it[i].sparkle = 0; /* Reset hieu ung lap lanh */
             return;
         }
     }
 }
 
-void spawnItem(Item it[], int n, float x, float y) {
-    int i;
-    for (i = 0; i < n; i++) {
-        if (!it[i].active) {
-            it[i].x = x; it[i].y = y; it[i].vy = 1.5f;
-            it[i].active = 1; it[i].radius = 13;
-            it[i].sparkle = 0;
-            return;
+/* applyItemToShip(): Ap dung nang cap xoay vong khi nhat tinh the.
+ * Thu tu xoay vong: vien (pellets) -> sat thuong (damage) -> toc ban (cooldown) -> lap lai.
+ * gItemCycle % 3 quyet dinh nang cap nao duoc ap dung lan nay. */
+void applyItemToShip(Ship *s)
+{
+    switch (gItemCycle % 3)
+    {
+    case 0: /* Nang cap so vien: +1 (toi da MAX_PELLETS) */
+        if (s->pelletsPerShot < MAX_PELLETS)
+            s->pelletsPerShot++;
+        break;
+    case 1: /* Nang cap sat thuong: +1 (toi da MAX_B_DAMAGE) */
+        if (s->bulletDamage < MAX_B_DAMAGE)
+            s->bulletDamage++;
+        break;
+    case 2: /* Nang cap toc ban: giam cooldown 15ms (nhanh hon) */
+        s->shootCooldown -= 15;
+        if (s->shootCooldown < MIN_SHOOT_CD)
+            s->shootCooldown = MIN_SHOOT_CD; /* Khong giam duoi muc toi thieu */
+        break;
+    }
+    gItemCycle++; /* Tang bien toan cuc de lan sau nang cap thu tiep theo */
+}
+
+/*
+ * handleBulletAsteroidCollisions(): Xu ly va cham DAN vs THIEN THACH.
+ *        - Cong diem (nho=30, vua=20, lon=10, + bonus maxHp*5)
+ *        - Tao hieu ung no (spawnExplosion)
+ *        - 15% co hoi roi tinh the (spawnItem)
+ *        - Respawn asteroid moi (initAsteroid)
+ */
+void handleBulletAsteroidCollisions(Bullet bul[], int nb,
+                                    Asteroid ast[], int na,
+                                    int *score, int level,
+                                    Item items[], Explosion exps[])
+{
+    int i, j;
+    for (i = 0; i < nb; i++)
+    {
+        if (!bul[i].active)
+            continue;
+        for (j = 0; j < na; j++)
+        {
+            if (!ast[j].active)
+                continue;
+            /* Kiem tra dan [i] va asteroid [j] co cham nhau khong */
+            if (checkCircleCollision(bul[i].x, bul[i].y, (float)bul[i].radius,
+                                     ast[j].x, ast[j].y, (float)ast[j].radius))
+            {
+                ast[j].hp -= bul[i].damage; /* Tru mau asteroid */
+                bul[i].active = 0;          /* Tat dan (1 dan chi trung 1 asteroid) */
+
+                if (ast[j].hp <= 0)
+                { /* Asteroid het mau: no */
+                    /* Diem thuong: asteroid nho hon duoc nhieu diem hon */
+                    int pts = 10;
+                    if (ast[j].radius <= 22)
+                        pts = 30;
+                    else if (ast[j].radius <= 35)
+                        pts = 20;
+                    *score += pts + ast[j].maxHp * 5; /* Bonus diem theo HP toi da */
+
+                    spawnExplosion(exps, MAX_EXPLOSIONS,
+                                   ast[j].x, ast[j].y, (float)ast[j].radius);
+                    /* ITEM_DROP_CHANCE% xac suat roi tinh the */
+                    if (rand() % 100 < ITEM_DROP_CHANCE)
+                        spawnItem(items, MAX_ITEMS, ast[j].x, ast[j].y);
+                    initAsteroid(&ast[j], level, &gCfg); /* Tao asteroid moi thay the */
+                }
+                break; /* 1 vien dan chi trung 1 asteroid, ngat vong lap asteroid */
+            }
         }
     }
 }
 
 /*
- * applyItemToShip: xoay vong nang cap (pellets -> damage -> fire rate)
- * Moi lan nhat tinh the, chi so khac nhau duoc tang.
+ * handleShipAsteroidCollision(): Xu ly va cham PHI THUYEN vs THIEN THACH.
  */
-void applyItemToShip(Ship *s) {
-    switch (gItemCycle % 3) {
-        case 0: /* Tang so vien */
-            if (s->pelletsPerShot < MAX_PELLETS) s->pelletsPerShot++;
-            break;
-        case 1: /* Tang sat thuong */
-            if (s->bulletDamage < MAX_B_DAMAGE) s->bulletDamage++;
-            break;
-        case 2: /* Tang toc ban */
-            s->shootCooldown -= 15;
-            if (s->shootCooldown < MIN_SHOOT_CD)
-                s->shootCooldown = MIN_SHOOT_CD;
-            break;
-    }
-    gItemCycle++;
-}
-
-/* Dan vs Asteroid – tru HP asteroid, neu hp<=0 thi no */
-void handleBulletAsteroidCollisions(Bullet bul[], int nb,
-                                    Asteroid ast[], int na,
-                                    int *score, int level,
-                                    Item items[], Explosion exps[]) {
-    int i, j;
-    for (i = 0; i < nb; i++) {
-        if (!bul[i].active) continue;
-        for (j = 0; j < na; j++) {
-            if (!ast[j].active) continue;
-            if (checkCircleCollision(bul[i].x, bul[i].y, (float)bul[i].radius,
-                                     ast[j].x, ast[j].y, (float)ast[j].radius)) {
-                ast[j].hp -= bul[i].damage;
-                bul[i].active = 0;
-
-                if (ast[j].hp <= 0) {
-                    /* Cong diem: nho +30, vua +20, lon +10, + maxHp*5 */
-                    int pts = 10;
-                    if (ast[j].radius <= 22) pts = 30;
-                    else if (ast[j].radius <= 35) pts = 20;
-                    *score += pts + ast[j].maxHp * 5;
-
-                    spawnExplosion(exps, MAX_EXPLOSIONS,
-                                  ast[j].x, ast[j].y, (float)ast[j].radius);
-                    if (rand() % 100 < ITEM_DROP_CHANCE)
-                        spawnItem(items, MAX_ITEMS, ast[j].x, ast[j].y);
-                    initAsteroid(&ast[j], level, &gCfg);
-                }
-                break;  /* 1 vien dan chi trung 1 asteroid */
-            }
-        }
-    }
-}
-
-/* Ship vs Asteroid */
 void handleShipAsteroidCollision(Ship *s, Asteroid ast[], int na,
                                  int *hp, unsigned long *lastHit,
-                                 Explosion exps[], int level) {
+                                 Explosion exps[], int level)
+{
     int j;
+    /* GetTickCount(): lay thoi gian hien tai de so sanh voi lastHit */
     unsigned long now = GetTickCount();
-    for (j = 0; j < na; j++) {
-        if (!ast[j].active) continue;
+    for (j = 0; j < na; j++)
+    {
+        if (!ast[j].active)
+            continue;
+        /* Kiem tra ship cham asteroid j */
         if (checkCircleCollision(s->x, s->y, (float)s->radius,
-                                 ast[j].x, ast[j].y, (float)ast[j].radius)) {
-            if (now - *lastHit >= HIT_COOLDOWN) {
-                *hp -= HIT_DAMAGE;
-                if (*hp < 0) *hp = 0;
-                *lastHit = now;
+                                 ast[j].x, ast[j].y, (float)ast[j].radius))
+        {
+            /* HIT_COOLDOWN (500ms): tranh bi tru mau LIEN TUC khi chong len asteroid */
+            if (now - *lastHit >= HIT_COOLDOWN)
+            {
+                *hp -= HIT_DAMAGE; /* Tru 12 HP moi lan bi dam */
+                if (*hp < 0)
+                    *hp = 0;    /* HP khong xuong duoi 0 */
+                *lastHit = now; /* Ghi lai thoi diem vua bi dam */
             }
+            /* No nho tai vi tri asteroid, sau do reset asteroid len tren */
             spawnExplosion(exps, MAX_EXPLOSIONS,
                            ast[j].x, ast[j].y, (float)ast[j].radius * 0.5f);
             initAsteroid(&ast[j], level, &gCfg);
@@ -545,39 +808,59 @@ void handleShipAsteroidCollision(Ship *s, Asteroid ast[], int na,
     }
 }
 
-/* Ship nhat tinh the */
-void handleItemPickup(Ship *s, Item it[], int n) {
+/* handleItemPickup(): Kiem tra ship cham tinh the va nhat len.
+ */
+void handleItemPickup(Ship *s, Item it[], int n)
+{
     int i;
-    for (i = 0; i < n; i++) {
-        if (!it[i].active) continue;
+    for (i = 0; i < n; i++)
+    {
+        if (!it[i].active)
+            continue;
+        /* Va cham hinh tron: ship cham tinh the -> nhat */
         if (checkCircleCollision(s->x, s->y, (float)s->radius,
-                                 it[i].x, it[i].y, (float)it[i].radius)) {
-            applyItemToShip(s);
-            it[i].active = 0;
+                                 it[i].x, it[i].y, (float)it[i].radius))
+        {
+            applyItemToShip(s); /* Nang cap ship theo vong xoay */
+            it[i].active = 0;   /* Tat item: bien mat khoi man hinh */
         }
     }
 }
 
-/* Ap dung sat thuong cua skill (goi 1 lan khi skill vua kich hoat) */
+/*
+ * applySkillDamage(): Ap dung sat thuong cua skill len asteroid.
+
+ */
 void applySkillDamage(SkillSystem *sk, Asteroid ast[], int na,
                       int *score, int level,
-                      Item items[], Explosion exps[]) {
+                      Item items[], Explosion exps[])
+{
     int j;
-    /* Bomb Burst: gay damage vung tron */
-    if (sk->bombActive && !sk->bombDmgDone) {
-        sk->bombDmgDone = 1;
-        for (j = 0; j < na; j++) {
-            if (!ast[j].active) continue;
+    /* Bomb Burst: gay damage vung tron.
+     * Co bombDmgDone dam bao dame chi xay ra 1 lan khi skill bat dau (bombFrame=0),
+     * du bomb hieu ung van con hien 22 frame. */
+    if (sk->bombActive && !sk->bombDmgDone)
+    {
+        sk->bombDmgDone = 1; /* Danh dau da ap dung, khong damage them lan nao nua */
+        for (j = 0; j < na; j++)
+        {
+            if (!ast[j].active)
+                continue;
+            /* Kiem tra asteroid co nam trong vung no (bombRadius) khong */
             if (checkCircleCollision(sk->bombX, sk->bombY, sk->bombRadius,
-                                     ast[j].x, ast[j].y, (float)ast[j].radius)) {
-                ast[j].hp -= sk->bombDmg;
-                if (ast[j].hp <= 0) {
+                                     ast[j].x, ast[j].y, (float)ast[j].radius))
+            {
+                ast[j].hp -= sk->bombDmg; /* Tru 8 diem mau */
+                if (ast[j].hp <= 0)
+                {
                     int pts = 10;
-                    if (ast[j].radius <= 22) pts = 30;
-                    else if (ast[j].radius <= 35) pts = 20;
+                    if (ast[j].radius <= 22)
+                        pts = 30;
+                    else if (ast[j].radius <= 35)
+                        pts = 20;
                     *score += pts + ast[j].maxHp * 5;
                     spawnExplosion(exps, MAX_EXPLOSIONS,
-                                  ast[j].x, ast[j].y, (float)ast[j].radius);
+                                   ast[j].x, ast[j].y, (float)ast[j].radius);
                     if (rand() % 100 < ITEM_DROP_CHANCE)
                         spawnItem(items, MAX_ITEMS, ast[j].x, ast[j].y);
                     initAsteroid(&ast[j], level, &gCfg);
@@ -585,22 +868,32 @@ void applySkillDamage(SkillSystem *sk, Asteroid ast[], int na,
             }
         }
     }
-    /* Piercing Beam: sat thuong moi asteroid tren duong tia */
-    if (sk->beamActive && !sk->beamDmgDone) {
+    /* Piercing Beam: sat thuong moi asteroid tren duong tia.
+     * beamHitsCircle(): kiem tra tia (tu beamSX/SY theo huong beamDX/DY) co cat qua asteroid.
+     * Tuong tu Bomb, co beamDmgDone de damage chi 1 lan khi beam bat dau. */
+    if (sk->beamActive && !sk->beamDmgDone)
+    {
         sk->beamDmgDone = 1;
-        for (j = 0; j < na; j++) {
-            if (!ast[j].active) continue;
+        for (j = 0; j < na; j++)
+        {
+            if (!ast[j].active)
+                continue;
+            /* Kiem tra asteroid co nam tren duong tia beam khong */
             if (beamHitsCircle(sk->beamSX, sk->beamSY,
                                sk->beamDX, sk->beamDY,
-                               ast[j].x, ast[j].y, (float)ast[j].radius)) {
-                ast[j].hp -= sk->beamDmg;
-                if (ast[j].hp <= 0) {
+                               ast[j].x, ast[j].y, (float)ast[j].radius))
+            {
+                ast[j].hp -= sk->beamDmg; /* Tru 12 diem mau moi asteroid trung tia */
+                if (ast[j].hp <= 0)
+                {
                     int pts = 10;
-                    if (ast[j].radius <= 22) pts = 30;
-                    else if (ast[j].radius <= 35) pts = 20;
+                    if (ast[j].radius <= 22)
+                        pts = 30;
+                    else if (ast[j].radius <= 35)
+                        pts = 20;
                     *score += pts + ast[j].maxHp * 5;
                     spawnExplosion(exps, MAX_EXPLOSIONS,
-                                  ast[j].x, ast[j].y, (float)ast[j].radius);
+                                   ast[j].x, ast[j].y, (float)ast[j].radius);
                     if (rand() % 100 < ITEM_DROP_CHANCE)
                         spawnItem(items, MAX_ITEMS, ast[j].x, ast[j].y);
                     initAsteroid(&ast[j], level, &gCfg);
@@ -610,43 +903,50 @@ void applySkillDamage(SkillSystem *sk, Asteroid ast[], int na,
     }
 }
 
-int checkLevelUp(int score, int level) {
+/* checkLevelUp(): Kim tra dieu kien len level.
+ */
+int checkLevelUp(int score, int level)
+{
     return (score >= level * LEVEL_UP_SCORE) ? 1 : 0;
 }
 
-/* ============================================================
- *  SECTION 8 – VE (Render)
- * ============================================================ */
-
-/* --- Nen sao --- */
-void drawStars(void) {
+void drawStars(void)
+{
     int i, c;
-    for (i = 0; i < MAX_STARS; i++) {
-        c = (sB[i] == 0) ? DARKGRAY : (sB[i] == 1) ? LIGHTGRAY : WHITE;
-        putpixel(sX[i], sY[i], c);
+    for (i = 0; i < MAX_STARS; i++)
+    {
+        /* Chon mau tuong ung voi do sang da tao luc initStars */
+        c = (sB[i] == 0) ? DARKGRAY : (sB[i] == 1) ? LIGHTGRAY
+                                                   : WHITE;
+        putpixel(sX[i], sY[i], c); /* Ve 1 diem pixel tai toa do ngoi sao */
     }
 }
 
 /* --- Phi thuyen --- */
 
-void drawShipBody(Ship s, float angle) {
-    /* Dinh mui */
+/* drawShipBody(): Ve than phi thuyen gom 3 phan: than chinh, canh trai, canh phai va kinh lai.
+ */
+void drawShipBody(Ship s, float angle)
+{
+    /* Tinh toa do dinh mui: cach tam mot khoang (radius + 14) theo huong angle */
     int nx = (int)(s.x + cosf(angle) * (s.radius + 14));
     int ny = (int)(s.y + sinf(angle) * (s.radius + 14));
-    /* 2 dinh sau */
+    /* 2 dinh phia sau: lech goc +/-2.5 rad so voi angle */
     int lx = (int)(s.x + cosf(angle + 2.5f) * s.radius);
     int ly = (int)(s.y + sinf(angle + 2.5f) * s.radius);
     int rx = (int)(s.x + cosf(angle - 2.5f) * s.radius);
     int ry = (int)(s.y + sinf(angle - 2.5f) * s.radius);
 
-    /* Than chinh */
-    setfillstyle(SOLID_FILL, CYAN);
-    int body[] = { nx, ny, lx, ly, rx, ry, nx, ny };
-    fillpoly(4, body);
-    setcolor(WHITE);
-    line(nx, ny, lx, ly); line(nx, ny, rx, ry); line(lx, ly, rx, ry);
+    /* Than chinh: tam giac CYAN to dau */
+    setfillstyle(SOLID_FILL, CYAN); /* Kieu to dac, mau CYAN */
+    int body[] = {nx, ny, lx, ly, rx, ry, nx, ny};
+    fillpoly(4, body); /* fillpoly(so_dinh, mang_toa_do): ve da giac da to mau */
+    setcolor(WHITE);   /* Dat mau ve vien la WHITE */
+    line(nx, ny, lx, ly);
+    line(nx, ny, rx, ry);
+    line(lx, ly, rx, ry); /* Ve vien */
 
-    /* Canh trai */
+    /* Canh trai: tam giac BLUE nho ben canh */
     {
         int w1x = (int)(s.x + cosf(angle + 2.0f) * s.radius * 0.7f);
         int w1y = (int)(s.y + sinf(angle + 2.0f) * s.radius * 0.7f);
@@ -655,12 +955,13 @@ void drawShipBody(Ship s, float angle) {
         int w3x = (int)(s.x + cosf(angle + 2.8f) * s.radius * 1.1f);
         int w3y = (int)(s.y + sinf(angle + 2.8f) * s.radius * 1.1f);
         setfillstyle(SOLID_FILL, BLUE);
-        int wL[] = { w1x, w1y, w2x, w2y, w3x, w3y, w1x, w1y };
+        int wL[] = {w1x, w1y, w2x, w2y, w3x, w3y, w1x, w1y};
         fillpoly(4, wL);
         setcolor(LIGHTCYAN);
-        line(w1x, w1y, w2x, w2y); line(w2x, w2y, w3x, w3y);
+        line(w1x, w1y, w2x, w2y);
+        line(w2x, w2y, w3x, w3y);
     }
-    /* Canh phai */
+    /* Canh phai: doi xung voi canh trai (goc tru thay vi cong) */
     {
         int w1x = (int)(s.x + cosf(angle - 2.0f) * s.radius * 0.7f);
         int w1y = (int)(s.y + sinf(angle - 2.0f) * s.radius * 0.7f);
@@ -669,26 +970,30 @@ void drawShipBody(Ship s, float angle) {
         int w3x = (int)(s.x + cosf(angle - 2.8f) * s.radius * 1.1f);
         int w3y = (int)(s.y + sinf(angle - 2.8f) * s.radius * 1.1f);
         setfillstyle(SOLID_FILL, BLUE);
-        int wR[] = { w1x, w1y, w2x, w2y, w3x, w3y, w1x, w1y };
+        int wR[] = {w1x, w1y, w2x, w2y, w3x, w3y, w1x, w1y};
         fillpoly(4, wR);
         setcolor(LIGHTCYAN);
-        line(w1x, w1y, w2x, w2y); line(w2x, w2y, w3x, w3y);
+        line(w1x, w1y, w2x, w2y);
+        line(w2x, w2y, w3x, w3y);
     }
-    /* Kinh lai */
+    /* Kinh lai: hinh ellipse nho phia truoc */
     {
         int cx = (int)(s.x + cosf(angle) * s.radius * 0.35f);
         int cy = (int)(s.y + sinf(angle) * s.radius * 0.35f);
         setcolor(LIGHTCYAN);
         setfillstyle(SOLID_FILL, LIGHTBLUE);
-        fillellipse(cx, cy, 5, 4);
+        fillellipse(cx, cy, 5, 4); /* fillellipse(cx,cy,rx,ry): ve ellipse to mau */
     }
 }
 
-void drawShipEngineFlame(Ship s, float angle, int frame) {
+/* drawShipEngineFlame(): Ve luoi lua dong co phia sau phi thuyen.
+ */
+void drawShipEngineFlame(Ship s, float angle, int frame)
+{
     float fLen = 10.0f + (frame % 6) * 2.5f;
-    float hW   = 5.0f + (frame % 4);
-    float bx   = s.x - cosf(angle) * s.radius * 0.5f;
-    float by   = s.y - sinf(angle) * s.radius * 0.5f;
+    float hW = 5.0f + (frame % 4);
+    float bx = s.x - cosf(angle) * s.radius * 0.5f;
+    float by = s.y - sinf(angle) * s.radius * 0.5f;
     float perp = angle + (float)M_PI / 2.0f;
 
     int tx = (int)(s.x - cosf(angle) * (s.radius * 0.5f + fLen));
@@ -699,7 +1004,7 @@ void drawShipEngineFlame(Ship s, float angle, int frame) {
     int e2y = (int)(by - sinf(perp) * hW);
 
     setfillstyle(SOLID_FILL, (frame % 3 == 0) ? LIGHTRED : RED);
-    int fl[] = { e1x, e1y, tx, ty, e2x, e2y, e1x, e1y };
+    int fl[] = {e1x, e1y, tx, ty, e2x, e2y, e1x, e1y};
     fillpoly(4, fl);
 
     /* Lop trong vang */
@@ -711,71 +1016,100 @@ void drawShipEngineFlame(Ship s, float angle, int frame) {
     int i2x = (int)(bx - cosf(perp) * iW);
     int i2y = (int)(by - sinf(perp) * iW);
     setfillstyle(SOLID_FILL, YELLOW);
-    int fi[] = { i1x, i1y, itx, ity, i2x, i2y, i1x, i1y };
+    int fi[] = {i1x, i1y, itx, ity, i2x, i2y, i1x, i1y};
     fillpoly(4, fi);
 }
 
-void drawShip(Ship s, int mx, int my, int frame) {
+/* drawShip(): Ve toan bo phi thuyen (lua, than, duong ngam, crosshair).
+ */
+void drawShip(Ship s, int mx, int my, int frame)
+{
+    /* atan2f(y, x): tinh goc cua vector (mx-sx, my-sy), biet huong chuot so voi ship */
     float angle = atan2f((float)(my - s.y), (float)(mx - s.x));
-    drawShipEngineFlame(s, angle, frame);
-    drawShipBody(s, angle);
+    drawShipEngineFlame(s, angle, frame); /* Ve lua truoc (nam phia duoi than) */
+    drawShipBody(s, angle);               /* Ve than tau len tren lua */
 
-    /* Duong ngam */
+    /* Duong ngam: duong net dut tu ship den 80px ve huong chuot */
     setcolor(DARKGRAY);
-    setlinestyle(DASHED_LINE, 0, 1);
+    setlinestyle(DASHED_LINE, 0, 1); /* Kieu duong net dut */
     float dx = (float)(mx - s.x), dy = (float)(my - s.y);
     float ln = sqrtf(dx * dx + dy * dy);
-    if (ln > 1.0f) {
-        int ax = (int)(s.x + dx / ln * 80);
+    if (ln > 1.0f)
+    {
+        int ax = (int)(s.x + dx / ln * 80); /* Diem cuoi duong ngam (80px tu tam) */
         int ay = (int)(s.y + dy / ln * 80);
-        line((int)s.x, (int)s.y, ax, ay);
+        line((int)s.x, (int)s.y, ax, ay); /* line(x1,y1,x2,y2): ve doan thang */
     }
-    setlinestyle(SOLID_LINE, 0, 1);
+    setlinestyle(SOLID_LINE, 0, 1); /* Dat lai kieu duong ke la lien tuc */
 
-    /* Crosshair */
+    /* Crosshair tai vi tri chuot: vong tron + duong cheo */
     setcolor(LIGHTGREEN);
-    circle(mx, my, 8);
-    line(mx - 12, my, mx + 12, my);
-    line(mx, my - 12, mx, my + 12);
+    circle(mx, my, 8);              /* circle(x,y,r): ve duong tron tam (mx,my) ban kinh 8 */
+    line(mx - 12, my, mx + 12, my); /* Duong ngang */
+    line(mx, my - 12, mx, my + 12); /* Duong doc */
 }
 
-/* --- Dan --- */
-void drawBullets(Bullet b[], int n) {
+// --- Dan ---
+void drawBullets(Bullet b[], int n)
+{
     int i;
-    for (i = 0; i < n; i++) {
-        if (!b[i].active) continue;
+    for (i = 0; i < n; i++)
+    {
+        if (!b[i].active)
+            continue;
         setcolor(YELLOW);
         setfillstyle(SOLID_FILL, YELLOW);
-        fillellipse((int)b[i].x, (int)b[i].y, b[i].radius, b[i].radius);
+        fillellipse((int)b[i].x, (int)b[i].y, b[i].radius, b[i].radius); /* Ve hinh tron dan */
     }
 }
 
 /* --- Thien thach --- */
-void drawAsteroid(Asteroid a) {
-    int nV = 10, i;
-    int poly[20]; /* 10 dinh x 2 */
+
+void drawAsteroid(Asteroid a)
+{
+    int nV = 10, i; /* 10 dinh polygon */
+    int poly[20];   /* Mang toa do: [x0,y0, x1,y1, ..., x9,y9] */
     unsigned int s;
     int cFill, cLine;
 
-    if (!a.active) return;
+    if (!a.active)
+        return;
 
     s = (unsigned int)a.seed;
-    for (i = 0; i < nV; i++) {
+    for (i = 0; i < nV; i++)
+    {
+        /* va: goc cua dinh thu i, gom goc xoay (rot) va goc phan bo deu quanh tron */
         float va = a.rot + (float)i / nV * 2.0f * (float)M_PI;
-        s = seedRand(s, i);
+        s = seedRand(s, i); /* Tao so ngau nhien on dinh tu seed va chi so dinh */
+        /* rv: he so lech ban kinh (0.75..1.25) tao hinh khong tron deu */
         float rv = 0.75f + (float)(s % 50) / 100.0f;
-        poly[i * 2]     = (int)(a.x + cosf(va) * a.radius * rv);
-        poly[i * 2 + 1] = (int)(a.y + sinf(va) * a.radius * rv);
+        poly[i * 2] = (int)(a.x + cosf(va) * a.radius * rv);     /* Toa do X dinh i */
+        poly[i * 2 + 1] = (int)(a.y + sinf(va) * a.radius * rv); /* Toa do Y dinh i */
     }
 
-    if (a.radius <= 22) { cFill = DARKGRAY; cLine = LIGHTGRAY; }
-    else if (a.radius <= 35) { cFill = RED; cLine = LIGHTRED; }
-    else { cFill = BROWN; cLine = YELLOW; }
+    /* Chon mau theo kich thuoc asteroid */
+    if (a.radius <= 22)
+    {
+        cFill = DARKGRAY;
+        cLine = LIGHTGRAY;
+    } /* Nho: xam */
+    else if (a.radius <= 35)
+    {
+        cFill = RED;
+        cLine = LIGHTRED;
+    } /* Vua: do */
+    else
+    {
+        cFill = BROWN;
+        cLine = YELLOW;
+    } /* Lon: nau */
 
     setfillstyle(SOLID_FILL, cFill);
-    fillpoly(nV, poly);
+    fillpoly(nV, poly); /* fillpoly(n, arr): ve va to mau da giac n dinh */
     setcolor(cLine);
-    for (i = 0; i < nV; i++) {
+    /* Ve vien polygon bang cach noi cac dinh lien tiep */
+    for (i = 0; i < nV; i++)
+    {
         int nx = (i + 1) % nV;
         line(poly[i * 2], poly[i * 2 + 1], poly[nx * 2], poly[nx * 2 + 1]);
     }
@@ -789,46 +1123,60 @@ void drawAsteroid(Asteroid a) {
 }
 
 /* Thanh mau tren dau asteroid */
-void drawAsteroidHPBar(Asteroid a) {
-    if (!a.active || a.maxHp <= 1) return;
-    int bW = a.radius * 2, bH = 4;
-    int x1 = (int)(a.x - bW / 2);
+void drawAsteroidHPBar(Asteroid a)
+{
+    if (!a.active || a.maxHp <= 1)
+        return;                    /* Khong ve neu asteroid 1HP (khong can thanh) */
+    int bW = a.radius * 2, bH = 4; /* Chieu rong = duong kinh, cao = 4px */
+    int x1 = (int)(a.x - bW / 2);  /* Goc trai tren cua thanh */
     int y1 = (int)(a.y - a.radius - 10);
-    int fillW = (int)(bW * (float)a.hp / a.maxHp);
-    if (fillW < 0) fillW = 0;
+    int fillW = (int)(bW * (float)a.hp / a.maxHp); /* Chieu rong phan HP con */
+    if (fillW < 0)
+        fillW = 0;
 
     setcolor(DARKGRAY);
-    rectangle(x1, y1, x1 + bW, y1 + bH);
-    if (a.hp * 2 > a.maxHp)     setfillstyle(SOLID_FILL, GREEN);
-    else if (a.hp * 4 > a.maxHp) setfillstyle(SOLID_FILL, YELLOW);
-    else                          setfillstyle(SOLID_FILL, RED);
-    bar(x1 + 1, y1 + 1, x1 + fillW, y1 + bH - 1);
+    rectangle(x1, y1, x1 + bW, y1 + bH); /* Khung ngoai thanh HP */
+    /* Chon mau theo ti le HP con lai */
+    if (a.hp * 2 > a.maxHp)
+        setfillstyle(SOLID_FILL, GREEN); /* >50%: xanh */
+    else if (a.hp * 4 > a.maxHp)
+        setfillstyle(SOLID_FILL, YELLOW); /* >25%: vang */
+    else
+        setfillstyle(SOLID_FILL, RED);            /* <=25%: do  */
+    bar(x1 + 1, y1 + 1, x1 + fillW, y1 + bH - 1); /* To phan HP con lai */
 }
 
-void drawAsteroids(Asteroid a[], int n) {
+/* drawAsteroids(): Ve tat ca asteroid dang active cung voi thanh HP cua chung.
+ */
+void drawAsteroids(Asteroid a[], int n)
+{
     int i;
-    for (i = 0; i < n; i++) {
-        drawAsteroid(a[i]);
-        drawAsteroidHPBar(a[i]);
+    for (i = 0; i < n; i++)
+    {
+        drawAsteroid(a[i]);      /* Ve hinh dang asteroid */
+        drawAsteroidHPBar(a[i]); /* Ve thanh HP phia tren (neu can) */
     }
 }
 
 /* --- Vat pham: Tinh the suc manh (lap lanh + bieu tuong set) --- */
-void drawItems(Item it[], int n) {
+void drawItems(Item it[], int n)
+{
     int i;
-    for (i = 0; i < n; i++) {
-        if (!it[i].active) continue;
-        it[i].sparkle++;  /* tang frame lap lanh */
+    for (i = 0; i < n; i++)
+    {
+        if (!it[i].active)
+            continue;
+        it[i].sparkle++; /* Tang dem frame moi frame de tao hieu ung dong */
 
         int cx = (int)it[i].x, cy = (int)it[i].y;
-        int r  = it[i].radius;
+        int r = it[i].radius;
 
         /* --- Hinh kim cuong (diamond) --- */
-        int dia[] = { cx, cy - r,          /* dinh tren */
-                      cx + r, cy,          /* phai */
-                      cx, cy + r,          /* duoi */
-                      cx - r, cy,          /* trai */
-                      cx, cy - r };        /* dong */
+        int dia[] = {cx, cy - r,  /* dinh tren */
+                     cx + r, cy,  /* phai */
+                     cx, cy + r,  /* duoi */
+                     cx - r, cy,  /* trai */
+                     cx, cy - r}; /* dong */
 
         /* Mau lap lanh xen ke LIGHTCYAN / LIGHTMAGENTA */
         int glow = (it[i].sparkle / 5) % 2;
@@ -846,114 +1194,145 @@ void drawItems(Item it[], int n) {
         setcolor(YELLOW);
         /* Net set don gian: 4 doan thang tao hinh zig-zag */
         line(cx - 2, cy - r + 4, cx + 2, cy - 2);
-        line(cx + 2, cy - 2,     cx - 2, cy + 1);
-        line(cx - 2, cy + 1,     cx + 2, cy + r - 4);
+        line(cx + 2, cy - 2, cx - 2, cy + 1);
+        line(cx - 2, cy + 1, cx + 2, cy + r - 4);
 
         /* --- Tia sparkle xoay quanh --- */
         {
-            float sa = it[i].sparkle * 0.15f; /* goc xoay */
+            float sa = it[i].sparkle * 0.15f; /* Goc xoay tang dan moi frame */
             int k;
-            for (k = 0; k < 4; k++) {
-                float a = sa + k * (float)M_PI / 2.0f;
+            for (k = 0; k < 4; k++)
+            {
+                /* Tinh diem dau/cuoi tia: cach tam (r+3) va (r+7) pixel */
+                float a = sa + k * (float)M_PI / 2.0f; /* 4 tia phân bo vai 90 do */
                 int sx1 = cx + (int)(cosf(a) * (r + 3));
                 int sy1 = cy + (int)(sinf(a) * (r + 3));
                 int sx2 = cx + (int)(cosf(a) * (r + 7));
                 int sy2 = cy + (int)(sinf(a) * (r + 7));
                 setcolor((k + it[i].sparkle / 3) % 2 ? WHITE : YELLOW);
-                line(sx1, sy1, sx2, sy2);
+                line(sx1, sy1, sx2, sy2); /* Ve tia sang nho xung quanh */
             }
         }
     }
 }
 
 /* --- Hieu ung no --- */
-void drawExplosions(Explosion e[], int n) {
+
+void drawExplosions(Explosion e[], int n)
+{
     int i;
-    for (i = 0; i < n; i++) {
-        if (!e[i].active) continue;
-        float p = (float)e[i].frame / e[i].maxFrames;
-        float r = e[i].maxRadius * p;
+    for (i = 0; i < n; i++)
+    {
+        if (!e[i].active)
+            continue;
+        float p = (float)e[i].frame / e[i].maxFrames; /* Ti le hoan thanh (0..1) */
+        float r = e[i].maxRadius * p;                 /* Ban kinh tang dan theo tien trinh */
         int c;
-        if (p < 0.25f) c = YELLOW;
-        else if (p < 0.5f) c = LIGHTRED;
-        else if (p < 0.75f) c = RED;
-        else c = DARKGRAY;
+        /* Mau: vang -> do nhat -> do -> xam (no dan, nguoi lan) */
+        if (p < 0.25f)
+            c = YELLOW;
+        else if (p < 0.5f)
+            c = LIGHTRED;
+        else if (p < 0.75f)
+            c = RED;
+        else
+            c = DARKGRAY;
         setcolor(c);
-        circle((int)e[i].x, (int)e[i].y, (int)r);
-        if (r > 5) circle((int)e[i].x, (int)e[i].y, (int)(r * 0.6f));
-        if (r > 10) circle((int)e[i].x, (int)e[i].y, (int)(r * 0.3f));
+        circle((int)e[i].x, (int)e[i].y, (int)r); /* Vong ngoai */
+        if (r > 5)
+            circle((int)e[i].x, (int)e[i].y, (int)(r * 0.6f)); /* Vong giua */
+        if (r > 10)
+            circle((int)e[i].x, (int)e[i].y, (int)(r * 0.3f)); /* Vong trong */
     }
 }
 
 /* --- Hieu ung skill --- */
-void drawSkillEffects(SkillSystem *sk) {
+void drawSkillEffects(SkillSystem *sk)
+{
     /* Bomb Burst: vong tron no */
-    if (sk->bombActive) {
-        float p = (float)sk->bombFrame / 22.0f;
-        float r = sk->bombRadius * p;
+    if (sk->bombActive)
+    {
+        float p = (float)sk->bombFrame / 22.0f; /* Ti le phi (0..1) */
+        float r = sk->bombRadius * p;           /* Ban kinh hien tai */
         int c;
-        if (p < 0.3f) c = YELLOW;
-        else if (p < 0.6f) c = LIGHTRED;
-        else c = RED;
+        if (p < 0.3f)
+            c = YELLOW;
+        else if (p < 0.6f)
+            c = LIGHTRED;
+        else
+            c = RED;
         setcolor(c);
-        circle((int)sk->bombX, (int)sk->bombY, (int)r);
-        circle((int)sk->bombX, (int)sk->bombY, (int)(r * 0.7f));
-        if (r > 20) circle((int)sk->bombX, (int)sk->bombY, (int)(r * 0.4f));
+        circle((int)sk->bombX, (int)sk->bombY, (int)r);          /* Vong ngoai */
+        circle((int)sk->bombX, (int)sk->bombY, (int)(r * 0.7f)); /* Vong giua */
+        if (r > 20)
+            circle((int)sk->bombX, (int)sk->bombY, (int)(r * 0.4f));
     }
-    /* Piercing Beam: tia sang */
-    if (sk->beamActive) {
-        float endX = sk->beamSX + sk->beamDX * 1500;
+    /* Piercing Beam: tia sang xuyen man hinh */
+    if (sk->beamActive)
+    {
+        float endX = sk->beamSX + sk->beamDX * 1500; /* Keo tia dai 1500px */
         float endY = sk->beamSY + sk->beamDY * 1500;
-        /* Tia day 3 pixel */
+        /* Ve tia day 3px mau CYAN, sau do tia mong 1px mau WHITE len tren */
         setcolor(LIGHTCYAN);
-        setlinestyle(SOLID_LINE, 0, 3);
+        setlinestyle(SOLID_LINE, 0, 3); /* setlinestyle(kieu, pattern, do_day) */
         line((int)sk->beamSX, (int)sk->beamSY, (int)endX, (int)endY);
         setcolor(WHITE);
-        setlinestyle(SOLID_LINE, 0, 1);
+        setlinestyle(SOLID_LINE, 0, 1); /* Dat lai duong ke mong */
         line((int)sk->beamSX, (int)sk->beamSY, (int)endX, (int)endY);
     }
-    /* Time Slow: chi bao tren man hinh */
-    if (sk->slowActive) {
+    /* Time Slow: chi bao tren HUD, khong co hieu ung hinh anh */
+    if (sk->slowActive)
+    {
         setcolor(LIGHTBLUE);
-        settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
-        outtextxy(WIDTH / 2 - 70, HEIGHT - 40, (char*)"~ SLOW ACTIVE ~");
-        settextstyle(DEFAULT_FONT, HORIZ_DIR, 1);
+        settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);                          /* Co chu 2 */
+        outtextxy(WIDTH / 2 - 70, HEIGHT - 40, (char *)"~ SLOW ACTIVE ~"); /* In chu tai toa do */
+        settextstyle(DEFAULT_FONT, HORIZ_DIR, 1);                          /* Reset co chu ve 1 */
     }
 }
 
-/* --- HUD --- */
-void drawHUD(int score, int hp, int level, Ship ship, SkillSystem *sk) {
+/* drawHUD(): Ve giao dien nguoi choi: HP, Level, Score, chi so dan, cooldown skill.
+ */
+void drawHUD(int score, int hp, int level, Ship ship, SkillSystem *sk)
+{
     char buf[80];
-    unsigned long now = GetTickCount();
+    unsigned long now = GetTickCount(); /* Lay thoi gian hien tai de tinh CD con lai */
 
     /* HP bar */
     setcolor(WHITE);
-    settextstyle(DEFAULT_FONT, HORIZ_DIR, 1);
-    outtextxy(15, 12, (char*)"HP:");
-    rectangle(50, 10, 260, 28);
+    settextstyle(DEFAULT_FONT, HORIZ_DIR, 1); /* Font mac dinh, ngang, co 1 */
+    outtextxy(15, 12, (char *)"HP:");         /* In nhan "HP:" tai (15,12) */
+    rectangle(50, 10, 260, 28);               /* Khung trang bar HP */
+    /* Tinh chieu rong phan HP con lai: ty le voi HP toi da */
     int bw = (int)(210.0f * hp / INITIAL_HP);
-    if (bw < 0) bw = 0;
-    if (hp > 60)       setfillstyle(SOLID_FILL, GREEN);
-    else if (hp > 30)  setfillstyle(SOLID_FILL, YELLOW);
-    else               setfillstyle(SOLID_FILL, RED);
-    bar(51, 11, 51 + bw, 27);
+    if (bw < 0)
+        bw = 0;
+    /* Mau HP: xanh (khoe), vang (trung binh), do (nguy hiem) */
+    if (hp > 60)
+        setfillstyle(SOLID_FILL, GREEN);
+    else if (hp > 30)
+        setfillstyle(SOLID_FILL, YELLOW);
+    else
+        setfillstyle(SOLID_FILL, RED);
+    bar(51, 11, 51 + bw, 27); /* bar(): to mau vung HCN the hien HP */
+    /* sprintf: ghi "hp/INITIAL_HP" vao buf, sau do outtextxy in ra */
     sprintf(buf, "%d/%d", hp, INITIAL_HP);
-    setcolor(WHITE); outtextxy(268, 12, buf);
+    setcolor(WHITE);
+    outtextxy(268, 12, buf); /* In gia tri HP dang so */
 
-    /* Level */
+    /* Level: hien thi giua tren man hinh */
     setcolor(LIGHTCYAN);
-    settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
+    settextstyle(DEFAULT_FONT, HORIZ_DIR, 2); /* Co chu lon hon binh thuong */
     sprintf(buf, "LEVEL %d", level);
-    outtextxy(WIDTH / 2 - 55, 8, buf);
+    outtextxy(WIDTH / 2 - 55, 8, buf); /* Giua man hinh, sat top */
 
-    /* Score */
+    /* Score: hien thi goc tren phai */
     setcolor(YELLOW);
     sprintf(buf, "SCORE: %d", score);
     outtextxy(WIDTH - 240, 8, buf);
 
-    settextstyle(DEFAULT_FONT, HORIZ_DIR, 1);
+    settextstyle(DEFAULT_FONT, HORIZ_DIR, 1); /* Reset co chu ve 1 */
 
-    /* Weapon stats (duoi trai) */
+    /* Weapon stats (duoi trai): hien thi sat thuong, so vien, cooldown hien tai */
     setcolor(LIGHTGREEN);
     sprintf(buf, "DMG:%d  PELLETS:%d  CD:%dms",
             ship.bulletDamage, ship.pelletsPerShot, ship.shootCooldown);
@@ -962,7 +1341,7 @@ void drawHUD(int score, int hp, int level, Ship ship, SkillSystem *sk) {
     /* Score de len level */
     setcolor(DARKGRAY);
     sprintf(buf, "Next Lv: %d", level * LEVEL_UP_SCORE);
-    outtextxy(15, HEIGHT - 30, buf);
+    outtextxy(15, HEIGHT - 30, buf); /* Goc duoi trai */
 
     /* Skill cooldown (duoi phai) */
     {
@@ -970,23 +1349,37 @@ void drawHUD(int score, int hp, int level, Ship ship, SkillSystem *sk) {
         float cd;
         int color;
 
-        /* Skill 1 – Bomb */
+        /* Skill 1 – Bomb: tinh so giay CD con lai, xanh=san sang, do=dang CD */
         cd = 0;
         if (now - sk->bombLast < sk->bombCD)
-            cd = (float)(sk->bombCD - (now - sk->bombLast)) / 1000.0f;
+            cd = (float)(sk->bombCD - (now - sk->bombLast)) / 1000.0f; /* ms -> giay */
         color = (cd <= 0) ? GREEN : RED;
         setcolor(color);
-        if (cd <= 0) sprintf(buf, "[1] BOMB: Ready");
-        else         sprintf(buf, "[1] BOMB: %.1fs", cd);
+        if (cd <= 0)
+            sprintf(buf, "[1] BOMB: Ready");
+        else
+            sprintf(buf, "[1] BOMB: %.1fs", cd); /* %.1f: 1 chu so thap phan */
         outtextxy(sx, sy, buf);
 
         /* Skill 2 – Slow */
         cd = 0;
         if (now - sk->slowLast < sk->slowCD)
             cd = (float)(sk->slowCD - (now - sk->slowLast)) / 1000.0f;
-        if (sk->slowActive) { color = YELLOW; sprintf(buf, "[2] SLOW: Active"); }
-        else if (cd <= 0)   { color = GREEN;  sprintf(buf, "[2] SLOW: Ready"); }
-        else                { color = RED;    sprintf(buf, "[2] SLOW: %.1fs", cd); }
+        if (sk->slowActive)
+        {
+            color = YELLOW;
+            sprintf(buf, "[2] SLOW: Active");
+        }
+        else if (cd <= 0)
+        {
+            color = GREEN;
+            sprintf(buf, "[2] SLOW: Ready");
+        }
+        else
+        {
+            color = RED;
+            sprintf(buf, "[2] SLOW: %.1fs", cd);
+        }
         setcolor(color);
         outtextxy(sx, sy + 16, buf);
 
@@ -996,40 +1389,45 @@ void drawHUD(int score, int hp, int level, Ship ship, SkillSystem *sk) {
             cd = (float)(sk->beamCD - (now - sk->beamLast)) / 1000.0f;
         color = (cd <= 0) ? GREEN : RED;
         setcolor(color);
-        if (cd <= 0) sprintf(buf, "[3] BEAM: Ready");
-        else         sprintf(buf, "[3] BEAM: %.1fs", cd);
+        if (cd <= 0)
+            sprintf(buf, "[3] BEAM: Ready");
+        else
+            sprintf(buf, "[3] BEAM: %.1fs", cd);
         outtextxy(sx, sy + 32, buf);
     }
 }
 
 /* --- Level Banner --- */
-void drawLevelBanner(int level) {
+
+void drawLevelBanner(int level)
+{
     char buf[32];
     setfillstyle(SOLID_FILL, BLUE);
-    bar(WIDTH / 2 - 200, HEIGHT / 2 - 60, WIDTH / 2 + 200, HEIGHT / 2 + 40);
+    bar(WIDTH / 2 - 200, HEIGHT / 2 - 60, WIDTH / 2 + 200, HEIGHT / 2 + 40); /* Nen banner */
     setcolor(LIGHTCYAN);
-    rectangle(WIDTH / 2 - 200, HEIGHT / 2 - 60, WIDTH / 2 + 200, HEIGHT / 2 + 40);
-    rectangle(WIDTH / 2 - 202, HEIGHT / 2 - 62, WIDTH / 2 + 202, HEIGHT / 2 + 42);
+    rectangle(WIDTH / 2 - 200, HEIGHT / 2 - 60, WIDTH / 2 + 200, HEIGHT / 2 + 40); /* Vien */
+    rectangle(WIDTH / 2 - 202, HEIGHT / 2 - 62, WIDTH / 2 + 202, HEIGHT / 2 + 42); /* Vien doi */
     setcolor(YELLOW);
-    settextstyle(DEFAULT_FONT, HORIZ_DIR, 4);
-    outtextxy(WIDTH / 2 - 105, HEIGHT / 2 - 48, (char*)"LEVEL UP!");
+    settextstyle(DEFAULT_FONT, HORIZ_DIR, 4);                         /* Co chu 4 (lon) */
+    outtextxy(WIDTH / 2 - 105, HEIGHT / 2 - 48, (char *)"LEVEL UP!"); /* Tieu de lon */
     setcolor(WHITE);
     settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
     sprintf(buf, "Level %d", level);
-    outtextxy(WIDTH / 2 - 45, HEIGHT / 2 + 5, buf);
-    settextstyle(DEFAULT_FONT, HORIZ_DIR, 1);
+    outtextxy(WIDTH / 2 - 45, HEIGHT / 2 + 5, buf); /* So level moi */
+    settextstyle(DEFAULT_FONT, HORIZ_DIR, 1);       /* Reset co chu */
 }
 
 /* --- Game Over --- */
-void drawGameOver(int score, int level) {
+void drawGameOver(int score, int level)
+{
     char buf[80];
     setfillstyle(SOLID_FILL, BLACK);
-    bar(0, 0, WIDTH, HEIGHT);
+    bar(0, 0, WIDTH, HEIGHT); /* Xoa man hinh bang mau den */
     setcolor(RED);
     rectangle(WIDTH / 2 - 280, HEIGHT / 2 - 140, WIDTH / 2 + 280, HEIGHT / 2 + 130);
-    rectangle(WIDTH / 2 - 282, HEIGHT / 2 - 142, WIDTH / 2 + 282, HEIGHT / 2 + 132);
-    settextstyle(DEFAULT_FONT, HORIZ_DIR, 7);
-    outtextxy(WIDTH / 2 - 210, HEIGHT / 2 - 110, (char*)"GAME OVER");
+    rectangle(WIDTH / 2 - 282, HEIGHT / 2 - 142, WIDTH / 2 + 282, HEIGHT / 2 + 132); /* Vien doi */
+    settextstyle(DEFAULT_FONT, HORIZ_DIR, 7);                                        /* Co chu 7 (cuc lon) */
+    outtextxy(WIDTH / 2 - 210, HEIGHT / 2 - 110, (char *)"GAME OVER");
     setcolor(YELLOW);
     settextstyle(DEFAULT_FONT, HORIZ_DIR, 3);
     sprintf(buf, "Final Score: %d", score);
@@ -1040,111 +1438,278 @@ void drawGameOver(int score, int level) {
     outtextxy(WIDTH / 2 - 100, HEIGHT / 2 + 40, buf);
     setcolor(WHITE);
     settextstyle(DEFAULT_FONT, HORIZ_DIR, 1);
-    outtextxy(WIDTH / 2 - 110, HEIGHT / 2 + 90, (char*)"Press any key to exit...");
+    outtextxy(WIDTH / 2 - 110, HEIGHT / 2 + 90, (char *)"Press any key to exit...");
+    /* Sau khi ham nay tra ve, main() goi getch() de doi nguoi choi bam phim */
+}
+
+/* pointInRect(): Kiem tra xem diem (x, y) co nam trong hinh chu nhat hay khong.
+ * Tra ve 1 neu nam trong, 0 neu o ngoai. Dung de: kiem tra click chuot vao nut. */
+int pointInRect(int x, int y, int x1, int y1, int x2, int y2)
+{
+    return (x >= x1 && x <= x2 && y >= y1 && y <= y2) ? 1 : 0;
+}
+
+/* drawMenuButton(): Ve nut hamburger (3 gach ngang) goc trai tren.
+. */
+void drawMenuButton(int hovered)
+{
+    /* Nen nut */
+    setfillstyle(SOLID_FILL, hovered ? DARKGRAY : BLACK);
+    bar(MENU_BTN_X1, MENU_BTN_Y1, MENU_BTN_X2, MENU_BTN_Y2);
+    /* Vien */
+    setcolor(hovered ? WHITE : LIGHTGRAY);
+    rectangle(MENU_BTN_X1, MENU_BTN_Y1, MENU_BTN_X2, MENU_BTN_Y2);
+    /* 3 gach ngang (hamburger icon) */
+    int cx = (MENU_BTN_X1 + MENU_BTN_X2) / 2;
+    int cy = (MENU_BTN_Y1 + MENU_BTN_Y2) / 2;
+    setcolor(hovered ? YELLOW : WHITE);
+    line(cx - 12, cy - 7, cx + 12, cy - 7);
+    line(cx - 12, cy, cx + 12, cy);
+    line(cx - 12, cy + 7, cx + 12, cy + 7);
+}
+
+/*
+ * drawPauseMenu(): Ve lop overlay tam dung game.
+ */
+void drawPauseMenu(int hmx, int hmy)
+{
+    int contHov = pointInRect(hmx, hmy, CONT_X1, CONT_Y1, CONT_X2, CONT_Y2);
+    int exitHov = pointInRect(hmx, hmy, EXIT_X1, EXIT_Y1, EXIT_X2, EXIT_Y2);
+
+    /* --- Lop mo (dim overlay) --- */
+    /* Ve mot so duong ngang ban trong suot de tao hieu ung toi */
+    setcolor(BLACK);
+    {
+        int yy;
+        for (yy = 0; yy < HEIGHT; yy += 2)
+            line(0, yy, WIDTH, yy);
+    }
+
+    /* --- Panel chinh --- */
+    setfillstyle(SOLID_FILL, BLACK);
+    bar(PANEL_X1, PANEL_Y1, PANEL_X2, PANEL_Y2);
+    /* Vien doi */
+    setcolor(LIGHTCYAN);
+    rectangle(PANEL_X1, PANEL_Y1, PANEL_X2, PANEL_Y2);
+    rectangle(PANEL_X1 - 2, PANEL_Y1 - 2, PANEL_X2 + 2, PANEL_Y2 + 2);
+
+    /* Tieu de */
+    setcolor(YELLOW);
+    settextstyle(DEFAULT_FONT, HORIZ_DIR, 3);
+    outtextxy(WIDTH / 2 - 100, PANEL_Y1 + 18, (char *)"PAUSE MENU");
+
+    /* --- Nut CONTINUE --- */
+    setfillstyle(SOLID_FILL, contHov ? BLUE : DARKGRAY);
+    bar(CONT_X1, CONT_Y1, CONT_X2, CONT_Y2);
+    setcolor(contHov ? WHITE : LIGHTCYAN);
+    rectangle(CONT_X1, CONT_Y1, CONT_X2, CONT_Y2);
+    settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
+    setcolor(contHov ? YELLOW : WHITE);
+    outtextxy(WIDTH / 2 - 65, CONT_Y1 + 8, (char *)"CONTINUE");
+
+    /* --- Nut EXIT --- */
+    setfillstyle(SOLID_FILL, exitHov ? RED : DARKGRAY);
+    bar(EXIT_X1, EXIT_Y1, EXIT_X2, EXIT_Y2);
+    setcolor(exitHov ? WHITE : LIGHTRED);
+    rectangle(EXIT_X1, EXIT_Y1, EXIT_X2, EXIT_Y2);
+    settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
+    setcolor(exitHov ? YELLOW : WHITE);
+    outtextxy(WIDTH / 2 - 35, EXIT_Y1 + 8, (char *)"EXIT");
+
+    /* Reset font */
+    settextstyle(DEFAULT_FONT, HORIZ_DIR, 1);
 }
 
 /* ============================================================
- *  SECTION 9 – MAIN / GAME LOOP
- * ============================================================ */
+   INPUT -> UPDATE -> COLLISION -> SKILL DMG -> LEVEL -> RENDER -> DELAY
+ */
 
-int main() {
-    Ship       ship;
-    Bullet     bullets[MAX_BULLETS];
-    Asteroid   asteroids[MAX_ASTEROIDS];
-    Item       items[MAX_ITEMS];
-    Explosion  explosions[MAX_EXPLOSIONS];
+int main()
+{
+
+    Ship ship;
+    Bullet bullets[MAX_BULLETS];
+    Asteroid asteroids[MAX_ASTEROIDS];
+    Item items[MAX_ITEMS];                // tinh the
+    Explosion explosions[MAX_EXPLOSIONS]; // hieu ung no
     SkillSystem skills;
 
     int score = 0, hp = INITIAL_HP, level = 1, gameOver = 0;
-    unsigned long lastShot = 0, lastHit = 0;
-    int mx = WIDTH / 2, my = HEIGHT / 2;
-    int frameCount = 0, levelBanner = 0, page = 0;
+    unsigned long lastShot = 0, lastHit = 0;       /* Thoi diem ban/bi dam cuoi cung (ms) */
+    int mx = WIDTH / 2, my = HEIGHT / 2;           // Vi tri chuot
+    int frameCount = 0, levelBanner = 0, page = 0; // Dem frame, banner level, double buffer
+    int menuOpen = 0;
+    int mxClick, myClick; /* Toa do click chuot */
 
-    /* Khoi tao cua so */
+    // initwindow(width, height, title): Mo cua so do hoa WinBGIm.
     int gd = DETECT, gm;
     initwindow(WIDTH, HEIGHT, "Asteroid Blaster v3.0");
+    /* setbkcolor(BLACK): */
     setbkcolor(BLACK);
     cleardevice();
 
-    /* Khoi tao game */
+    /* Khoi tao toan bo trang thai game (doi tuong, mang, bien dieu kien) */
     initGame(&ship, asteroids, bullets, items, explosions, &skills,
              &score, &hp, &level);
 
     /* ====== VONG LAP CHINH ======
-     *  input -> update -> collision -> skill dmg
-     *  -> level check -> render -> delay
+     *  BUOC 1: INPUT  - doc ban phim, chuot, ky nang
+     *  BUOC 2: UPDATE - di chuyen tat ca doi tuong
+     *  BUOC 3: COLLISION - xu ly va cham
+     *  BUOC 4: SKILL DAMAGE - ap dung dame skill
+     *  BUOC 5: LEVEL CHECK - kiem tra len level
+     *  BUOC 6: RENDER - ve tat ca len man hinh (double buffer)
+     *  BUOC 7: DELAY  - nghi ~16ms de giu toc do ~60fps
      */
-    while (!gameOver) {
+    while (!gameOver)
+    {
+        /* GetTickCount(): lay so ms ke tu khoi dong may - dung tinh cooldown */
         unsigned long now = GetTickCount();
-        frameCount++;
-        if (GetAsyncKeyState(VK_ESCAPE) & 0x8000) break;
+        frameCount++; /* Tang dem frame moi luot vong lap */
 
-        /* 1) INPUT */
-        handleKeyboardMove(&ship);
-        handleMouse(&mx, &my);
-        handleSkillsInput(&skills, &ship, mx, my, now);
-
-        /* 2) UPDATE */
-        updateShip(&ship);
-        tryAutoShoot(&ship, bullets, MAX_BULLETS, mx, my, &lastShot);
-        updateBullets(bullets, MAX_BULLETS);
-
-        /* speedMul cho time slow */
-        float spdM = skills.slowActive ? skills.slowFactor : 1.0f;
-        updateAsteroids(asteroids, MAX_ASTEROIDS, level, spdM);
-
-        updateItems(items, MAX_ITEMS);
-        updateExplosions(explosions, MAX_EXPLOSIONS);
-        updateSkillEffects(&skills, now);
-
-        /* 3) COLLISION */
-        handleBulletAsteroidCollisions(bullets, MAX_BULLETS,
-                                       asteroids, MAX_ASTEROIDS,
-                                       &score, level, items, explosions);
-        handleShipAsteroidCollision(&ship, asteroids, MAX_ASTEROIDS,
-                                    &hp, &lastHit, explosions, level);
-        handleItemPickup(&ship, items, MAX_ITEMS);
-
-        /* 4) SKILL DAMAGE */
-        applySkillDamage(&skills, asteroids, MAX_ASTEROIDS,
-                         &score, level, items, explosions);
-
-        /* 5) LEVEL CHECK */
-        if (checkLevelUp(score, level)) {
-            level++;
-            updateDifficultyByLevel(level, &gCfg);
-            levelBanner = LEVEL_BANNER_FR;
-            { int i; for (i = 0; i < MAX_ASTEROIDS; i++) {
-                initAsteroid(&asteroids[i], level, &gCfg);
-                asteroids[i].y = (float)(-(rand() % 300) - 200);
-            }}
+        if (GetAsyncKeyState(VK_ESCAPE) & 0x8000)
+        {
+            if (menuOpen)
+            {
+                menuOpen = 0;
+                delay(200);
+            }
+            else
+            {
+                menuOpen = 1; /* Mo menu pause */
+                delay(200);
+            }
         }
-        if (hp <= 0) gameOver = 1;
 
-        /* 6) RENDER (double buffer) */
-        setactivepage(page);
-        cleardevice();
+        //  ismouseclick(WM_LBUTTONDOWN): kiem tra co click chuot trai moi khong.
+        //  getmouseclick(loai, &x, &y): lay toa do click va xoa khoi hang doi.
+        if (ismouseclick(WM_LBUTTONDOWN))
+        {
+            getmouseclick(WM_LBUTTONDOWN, mxClick, myClick);
 
-        drawStars();
-        drawAsteroids(asteroids, MAX_ASTEROIDS);
-        drawItems(items, MAX_ITEMS);
-        drawBullets(bullets, MAX_BULLETS);
-        drawExplosions(explosions, MAX_EXPLOSIONS);
-        drawSkillEffects(&skills);
-        drawShip(ship, mx, my, frameCount);
-        drawHUD(score, hp, level, ship, &skills);
-        if (levelBanner > 0) { drawLevelBanner(level); levelBanner--; }
+            if (menuOpen)
+            {
+                /* Menu dang mo: kiem tra click CONTINUE / EXIT */
+                if (pointInRect(mxClick, myClick,
+                                CONT_X1, CONT_Y1, CONT_X2, CONT_Y2))
+                {
+                    menuOpen = 0; /* Tiep tuc choi */
+                }
+                else if (pointInRect(mxClick, myClick,
+                                     EXIT_X1, EXIT_Y1, EXIT_X2, EXIT_Y2))
+                {
+                    gameOver = 1; /* Thoat game */
+                }
+            }
+            else
+            {
+                /* Game dang chay: kiem tra click nut MENU */
+                if (pointInRect(mxClick, myClick,
+                                MENU_BTN_X1, MENU_BTN_Y1,
+                                MENU_BTN_X2, MENU_BTN_Y2))
+                {
+                    menuOpen = 1; /* Mo menu */
+                }
+            }
+        }
+        handleMouse(&mx, &my);
 
-        setvisualpage(page);
-        page = 1 - page;
+        if (!menuOpen)
+        {
+            /* BUOC 1: INPUT - doc phim va ky nang */
+            handleKeyboardMove(&ship);                      /* Di chuyen ship */
+            handleSkillsInput(&skills, &ship, mx, my, now); /* Kiem tra phim 1/2/3 */
 
-        /* 7) DELAY */
+            /* BUOC 2: UPDATE - di chuyen va cap nhat trang thai doi tuong */
+            updateShip(&ship);                                            /* Giu ship trong man hinh */
+            tryAutoShoot(&ship, bullets, MAX_BULLETS, mx, my, &lastShot); /* Tu dong ban */
+            updateBullets(bullets, MAX_BULLETS);                          /* Di chuyen dan */
+
+            /* Neu Time Slow dang kich hoat: asteroid di chuyen cham hon */
+            float spdM = skills.slowActive ? skills.slowFactor : 1.0f;
+            updateAsteroids(asteroids, MAX_ASTEROIDS, level, spdM);
+
+            updateItems(items, MAX_ITEMS);                /* Roi tinh the xuong */
+            updateExplosions(explosions, MAX_EXPLOSIONS); /* Dem frame no */
+            updateSkillEffects(&skills, now);             /* Kiem tra het han skill */
+
+            /* BUOC 3: COLLISION - xu ly va cham giua cac doi tuong */
+            handleBulletAsteroidCollisions(bullets, MAX_BULLETS,
+                                           asteroids, MAX_ASTEROIDS,
+                                           &score, level, items, explosions);
+            handleShipAsteroidCollision(&ship, asteroids, MAX_ASTEROIDS,
+                                        &hp, &lastHit, explosions, level);
+            handleItemPickup(&ship, items, MAX_ITEMS); /* Nhat tinh the */
+
+            /* BUOC 4: SKILL DAMAGE - ap dung sat thuong skill (1 lan/kich hoat) */
+            applySkillDamage(&skills, asteroids, MAX_ASTEROIDS,
+                             &score, level, items, explosions);
+
+            /* BUOC 5: LEVEL CHECK - len level khi dat du diem */
+            if (checkLevelUp(score, level))
+            {
+                level++;
+                updateDifficultyByLevel(level, &gCfg); /* Tang do kho theo level moi */
+                levelBanner = LEVEL_BANNER_FR;         /* Hien bang Level Up ~1.5s */
+
+                {
+                    int i;
+                    for (i = 0; i < MAX_ASTEROIDS; i++)
+                    {
+                        initAsteroid(&asteroids[i], level, &gCfg);
+                        asteroids[i].y = (float)(-(rand() % 300) - 200); /* Tren man hinh */
+                    }
+                }
+            }
+            if (hp <= 0)
+                gameOver = 1; /* HP ve 0: ket thuc game */
+        } /* end if (!menuOpen) */
+
+        // BUOC 6: RENDER - ve tat ca len trang an, roi hien len man hinh
+
+        setactivepage(page); /* Chon trang se ve vao (an) */
+        cleardevice();       /* Xoa trang nay ve mau nen (den) */
+
+        drawStars();                                /* Ve nen sao truoc nhat */
+        drawAsteroids(asteroids, MAX_ASTEROIDS);    /* Ve asteroid + HP bar */
+        drawItems(items, MAX_ITEMS);                /* Ve tinh the */
+        drawBullets(bullets, MAX_BULLETS);          /* Ve dan */
+        drawExplosions(explosions, MAX_EXPLOSIONS); /* Ve hieu ung no */
+        drawSkillEffects(&skills);                  /* Ve hieu ung 3 skill */
+        drawShip(ship, mx, my, frameCount);         /* Ve phi thuyen + crosshair */
+        drawHUD(score, hp, level, ship, &skills);   /* Ve HUD */
+        if (levelBanner > 0)
+        {
+            drawLevelBanner(level);
+            levelBanner--;
+        } /* Banner Level Up */
+
+        {
+            int btnHov = pointInRect(mx, my,
+                                     MENU_BTN_X1, MENU_BTN_Y1,
+                                     MENU_BTN_X2, MENU_BTN_Y2);
+            drawMenuButton(btnHov);
+        }
+
+        /* Ve overlay pause menu (len tren tat ca) khi dang tam dung */
+        if (menuOpen)
+        {
+            drawPauseMenu(mx, my);
+        }
+
+        setvisualpage(page); /* Hien trang vua ve len man hinh */
+        page = 1 - page;     /* Doi trang: 0->1->0->1... */
+
+        // BUOC 7: DELAY - nghi 16ms ~ toc do 60fps
+
         delay(16);
     }
 
-    /* GAME OVER */
-    setactivepage(0); setvisualpage(0);
-    drawGameOver(score, level);
+    /* GAME OVER: ve man hinh ket thuc, doi nguoi choi bam phim, don dep */
+    setactivepage(0);
+    setvisualpage(0);           /* Ve vao trang 0 va hien ngay */
+    drawGameOver(score, level); /* Hien thi bang Game Over */
+
     getch();
     closegraph();
     return 0;
