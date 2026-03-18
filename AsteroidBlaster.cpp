@@ -204,7 +204,9 @@ typedef struct {
 static GameConfig gCfg;
 
 static int sX[MAX_STARS], sY[MAX_STARS], sB[MAX_STARS];
+static int sPhase[MAX_STARS]; /* Pha nhap nhay cua tung ngoi sao */
 static int starsReady = 0;
+static int gStarFrame = 0; /* Dem frame toan cuc cho hieu ung nhap nhay sao */
 static int gCurrentBGImage = 4; /* Chi so anh BMP hien tai (4, 5, 6...) */
 
 static unsigned int seedRand(unsigned int s, int i) {
@@ -235,6 +237,7 @@ void initStars(void) {
     sX[i] = rand() % WIDTH;
     sY[i] = rand() % HEIGHT;
     sB[i] = rand() % 3;
+    sPhase[i] = rand() % 60; /* Pha ngau nhien de sao nhap nhay lech nhau */
   }
   starsReady = 1;
 }
@@ -806,11 +809,44 @@ int checkLevelUp(int score, int level) {
 }
 
 void drawStars(void) {
-  int i, c;
+  int i, c, phase, brightness;
+  gStarFrame++; /* Tang frame moi lan ve */
   for (i = 0; i < MAX_STARS; i++) {
-    /* Chon mau tuong ung voi do sang da tao luc initStars */
-    c = (sB[i] == 0) ? DARKGRAY : (sB[i] == 1) ? LIGHTGRAY : WHITE;
-    putpixel(sX[i], sY[i], c); /* Ve 1 diem pixel tai toa do ngoi sao */
+    /* Tinh pha hien tai cua sao: ket hop frame toan cuc va pha rieng */
+    phase = (gStarFrame + sPhase[i]) % 60;
+    /* brightness: 0->30 tang sang, 30->60 giam sang (hieu ung tho) */
+    brightness = (phase < 30) ? phase : (60 - phase);
+
+    if (brightness < 8) {
+      /* Toi nhat: chi 1 pixel xam */
+      putpixel(sX[i], sY[i], DARKGRAY);
+    } else if (brightness < 16) {
+      /* Hoi sang: 1 pixel xam nhat */
+      putpixel(sX[i], sY[i], LIGHTGRAY);
+    } else if (brightness < 22) {
+      /* Sang: 1 pixel trang + glow xam xung quanh */
+      c = WHITE;
+      putpixel(sX[i], sY[i], c);
+      putpixel(sX[i] - 1, sY[i], DARKGRAY);
+      putpixel(sX[i] + 1, sY[i], DARKGRAY);
+      putpixel(sX[i], sY[i] - 1, DARKGRAY);
+      putpixel(sX[i], sY[i] + 1, DARKGRAY);
+    } else {
+      /* Sang nhat: hinh chu thap sang + glow */
+      c = WHITE;
+      putpixel(sX[i], sY[i], c);
+      putpixel(sX[i] - 1, sY[i], LIGHTGRAY);
+      putpixel(sX[i] + 1, sY[i], LIGHTGRAY);
+      putpixel(sX[i], sY[i] - 1, LIGHTGRAY);
+      putpixel(sX[i], sY[i] + 1, LIGHTGRAY);
+      /* Tia xa hon */
+      if (brightness > 26) {
+        putpixel(sX[i] - 2, sY[i], DARKGRAY);
+        putpixel(sX[i] + 2, sY[i], DARKGRAY);
+        putpixel(sX[i], sY[i] - 2, DARKGRAY);
+        putpixel(sX[i], sY[i] + 2, DARKGRAY);
+      }
+    }
   }
 }
 
@@ -1831,6 +1867,7 @@ void drawHUD(int score, int hp, int level, Ship ship, SkillSystem *sk) {
 
 void drawLevelBanner(int level) {
   char buf[32];
+  int tw, th;
   setfillstyle(SOLID_FILL, BLUE);
   bar(WIDTH / 2 - 200, HEIGHT / 2 - 60, WIDTH / 2 + 200,
       HEIGHT / 2 + 40); /* Nen banner */
@@ -1840,14 +1877,16 @@ void drawLevelBanner(int level) {
   rectangle(WIDTH / 2 - 202, HEIGHT / 2 - 62, WIDTH / 2 + 202,
             HEIGHT / 2 + 42); /* Vien doi */
   setcolor(YELLOW);
-  settextstyle(DEFAULT_FONT, HORIZ_DIR, 4); /* Co chu 4 (lon) */
-  outtextxy(WIDTH / 2 - 105, HEIGHT / 2 - 48,
-            (char *)"LEVEL UP!"); /* Tieu de lon */
+  settextstyle(DEFAULT_FONT, HORIZ_DIR, 4);
+  tw = textwidth((char *)"LEVEL UP!");
+  th = textheight((char *)"LEVEL UP!");
+  outtextxy(WIDTH / 2 - tw / 2, HEIGHT / 2 - 50 - th / 2, (char *)"LEVEL UP!");
   setcolor(WHITE);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
   sprintf(buf, "Level %d", level);
-  outtextxy(WIDTH / 2 - 45, HEIGHT / 2 + 5, buf); /* So level moi */
-  settextstyle(DEFAULT_FONT, HORIZ_DIR, 1);       /* Reset co chu */
+  tw = textwidth(buf);
+  outtextxy(WIDTH / 2 - tw / 2, HEIGHT / 2 + 5, buf);
+  settextstyle(DEFAULT_FONT, HORIZ_DIR, 1);
 }
 
 /* pointInRect(): Kiem tra xem diem (x, y) co nam trong hinh chu nhat hay khong.
@@ -1861,8 +1900,9 @@ int pointInRect(int x, int y, int x1, int y1, int x2, int y2) {
  * UI FUNCTIONS (Menu, Guide, Pause, Game Over)
  * ====================================================================== */
 
-/* drawMainMenu(): Ve man hinh menu chinh */
+/* drawMainMenu(): Ve man hinh menu chinh voi text can giua */
 void drawMainMenu(int mx, int my) {
+  int tw, th, btnCY;
   int startHov = pointInRect(mx, my, MENU_START_X1, MENU_START_Y1,
                              MENU_START_X2, MENU_START_Y2);
   int guideHov = pointInRect(mx, my, MENU_GUIDE_X1, MENU_GUIDE_Y1,
@@ -1873,41 +1913,53 @@ void drawMainMenu(int mx, int my) {
   cleardevice();
   drawStars();
 
-  /* --- Tieu de game --- */
+  /* --- Tieu de game (can giua) --- */
   setcolor(YELLOW);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 7);
-  outtextxy(WIDTH / 2 - 280, HEIGHT / 2 - 180, (char *)"ASTEROID");
+  tw = textwidth((char *)"ASTEROID");
+  outtextxy(WIDTH / 2 - tw / 2, HEIGHT / 2 - 200, (char *)"ASTEROID");
   setcolor(CYAN);
-  outtextxy(WIDTH / 2 - 200, HEIGHT / 2 - 100, (char *)"BLASTER");
+  tw = textwidth((char *)"BLASTER");
+  outtextxy(WIDTH / 2 - tw / 2, HEIGHT / 2 - 120, (char *)"BLASTER");
 
-  /* Phien ban */
+  /* Phien ban (can giua) */
   setcolor(LIGHTGRAY);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 1);
-  outtextxy(WIDTH / 2 - 30, HEIGHT / 2 - 50, (char *)"v3.0");
+  tw = textwidth((char *)"v3.0");
+  outtextxy(WIDTH / 2 - tw / 2, HEIGHT / 2 - 50, (char *)"v3.0");
 
-  /* --- Nut START GAME --- */
+  /* --- Nut BAT DAU (can giua ngang + doc) --- */
   setfillstyle(SOLID_FILL, startHov ? GREEN : DARKGRAY);
   bar(MENU_START_X1, MENU_START_Y1, MENU_START_X2, MENU_START_Y2);
   setcolor(startHov ? YELLOW : WHITE);
   rectangle(MENU_START_X1, MENU_START_Y1, MENU_START_X2, MENU_START_Y2);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 3);
-  outtextxy(WIDTH / 2 - 90, MENU_START_Y1 + 12, (char *)"START GAME");
+  tw = textwidth((char *)"BAT DAU");
+  th = textheight((char *)"BAT DAU");
+  btnCY = (MENU_START_Y1 + MENU_START_Y2) / 2;
+  outtextxy(WIDTH / 2 - tw / 2, btnCY - th / 2, (char *)"BAT DAU");
 
-  /* --- Nut GUIDE --- */
+  /* --- Nut HUONG DAN (can giua) --- */
   setfillstyle(SOLID_FILL, guideHov ? BLUE : DARKGRAY);
   bar(MENU_GUIDE_X1, MENU_GUIDE_Y1, MENU_GUIDE_X2, MENU_GUIDE_Y2);
   setcolor(guideHov ? YELLOW : LIGHTCYAN);
   rectangle(MENU_GUIDE_X1, MENU_GUIDE_Y1, MENU_GUIDE_X2, MENU_GUIDE_Y2);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 3);
-  outtextxy(WIDTH / 2 - 50, MENU_GUIDE_Y1 + 12, (char *)"GUIDE");
+  tw = textwidth((char *)"HUONG DAN");
+  th = textheight((char *)"HUONG DAN");
+  btnCY = (MENU_GUIDE_Y1 + MENU_GUIDE_Y2) / 2;
+  outtextxy(WIDTH / 2 - tw / 2, btnCY - th / 2, (char *)"HUONG DAN");
 
-  /* --- Nut EXIT --- */
+  /* --- Nut THOAT (can giua) --- */
   setfillstyle(SOLID_FILL, exitHov ? RED : DARKGRAY);
   bar(MENU_EXIT_X1, MENU_EXIT_Y1, MENU_EXIT_X2, MENU_EXIT_Y2);
   setcolor(exitHov ? YELLOW : LIGHTRED);
   rectangle(MENU_EXIT_X1, MENU_EXIT_Y1, MENU_EXIT_X2, MENU_EXIT_Y2);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 3);
-  outtextxy(WIDTH / 2 - 35, MENU_EXIT_Y1 + 12, (char *)"EXIT");
+  tw = textwidth((char *)"THOAT");
+  th = textheight((char *)"THOAT");
+  btnCY = (MENU_EXIT_Y1 + MENU_EXIT_Y2) / 2;
+  outtextxy(WIDTH / 2 - tw / 2, btnCY - th / 2, (char *)"THOAT");
 
   /* Reset */
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 1);
@@ -1928,77 +1980,79 @@ int handleMainMenuClick(int mx, int my) {
   return 0;
 }
 
-/* drawGuideScreen(): Hien thi huong dan choi game */
+/* drawGuideScreen(): Hien thi huong dan choi game (tieng Viet, can giua) */
 void drawGuideScreen(int mx, int my) {
+  int tw, th, btnCY;
   int backHov = pointInRect(mx, my, GUIDE_BACK_X1, GUIDE_BACK_Y1, GUIDE_BACK_X2,
                             GUIDE_BACK_Y2);
 
   cleardevice();
   drawStars();
 
-  /* Tieu de */
+  /* Tieu de (can giua) */
   setcolor(YELLOW);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 4);
-  outtextxy(WIDTH / 2 - 150, 30, (char *)"HOW TO PLAY");
+  tw = textwidth((char *)"HUONG DAN CHOI");
+  outtextxy(WIDTH / 2 - tw / 2, 30, (char *)"HUONG DAN CHOI");
 
-  settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
-
-  /* Dieu khien */
+  /* --- DIEU KHIEN --- */
   setcolor(LIGHTCYAN);
-  outtextxy(100, 100, (char *)"CONTROLS:");
+  settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
+  outtextxy(100, 90, (char *)"DIEU KHIEN:");
 
   setcolor(WHITE);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 1);
-  outtextxy(120, 130, (char *)"WASD / Arrow Keys - Move ship");
-  outtextxy(120, 150, (char *)"Mouse - Aim direction");
-  outtextxy(120, 170, (char *)"Auto Shoot - Shoots automatically");
-  outtextxy(120, 190, (char *)"ESC - Pause game");
+  outtextxy(120, 120, (char *)"WASD / Phim mui ten  -  Di chuyen phi thuyen");
+  outtextxy(120, 140, (char *)"Chuot                -  Ngam huong ban");
+  outtextxy(120, 160, (char *)"Tu dong ban          -  Phi thuyen tu dong ban dan");
+  outtextxy(120, 180, (char *)"ESC                  -  Tam dung game");
 
-  /* Ky nang */
+  /* --- KY NANG --- */
   setcolor(LIGHTCYAN);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
-  outtextxy(100, 230, (char *)"SKILLS:");
+  outtextxy(100, 215, (char *)"KY NANG:");
 
   setcolor(YELLOW);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 1);
-  outtextxy(120, 260,
-            (char *)"[1] BOMB BURST - Explode area around ship (CD: 8s)");
+  outtextxy(120, 245, (char *)"[1] BOM NO - No vung tron quanh phi thuyen (CD: 8 giay)");
 
   setcolor(LIGHTBLUE);
-  outtextxy(120, 280,
-            (char *)"[2] TIME SLOW - Slow asteroids for 4s (CD: 12s)");
+  outtextxy(120, 265, (char *)"[2] LAM CHAM - Lam cham thien thach trong 4 giay (CD: 12 giay)");
 
   setcolor(LIGHTCYAN);
-  outtextxy(120, 300, (char *)"[3] PIERCING BEAM - Laser beam (CD: 10s)");
+  outtextxy(120, 285, (char *)"[3] TIA XUYEN - Ban tia laser xuyen qua (CD: 10 giay)");
 
-  /* Muc tieu */
+  /* --- MUC TIEU --- */
   setcolor(LIGHTCYAN);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
-  outtextxy(100, 350, (char *)"OBJECTIVE:");
+  outtextxy(100, 325, (char *)"MUC TIEU:");
 
   setcolor(WHITE);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 1);
-  outtextxy(120, 380, (char *)"- Destroy asteroids to earn points");
-  outtextxy(120, 400, (char *)"- Collect power crystals to upgrade");
-  outtextxy(120, 420, (char *)"- Reach 1000 points per level to advance");
-  outtextxy(120, 440, (char *)"- Survive as long as possible!");
+  outtextxy(120, 355, (char *)"- Pha huy thien thach de ghi diem");
+  outtextxy(120, 375, (char *)"- Thu thap tinh the nang luong de nang cap");
+  outtextxy(120, 395, (char *)"- Dat 1000 diem moi cap de len level");
+  outtextxy(120, 415, (char *)"- Song sot cang lau cang tot!");
 
-  /* Power-ups */
+  /* --- TINH THE NANG CAP --- */
   setcolor(LIGHTMAGENTA);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
-  outtextxy(100, 480, (char *)"POWER CRYSTALS:");
+  outtextxy(100, 455, (char *)"TINH THE NANG CAP:");
 
   setcolor(WHITE);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 1);
-  outtextxy(120, 510, (char *)"Cycle: Pellets -> Damage -> Fire Rate");
+  outtextxy(120, 485, (char *)"Xoay vong: So dan -> Sat thuong -> Toc do ban");
 
-  /* Nut BACK */
+  /* --- Nut QUAY LAI (can giua) --- */
   setfillstyle(SOLID_FILL, backHov ? CYAN : DARKGRAY);
   bar(GUIDE_BACK_X1, GUIDE_BACK_Y1, GUIDE_BACK_X2, GUIDE_BACK_Y2);
   setcolor(backHov ? YELLOW : WHITE);
   rectangle(GUIDE_BACK_X1, GUIDE_BACK_Y1, GUIDE_BACK_X2, GUIDE_BACK_Y2);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
-  outtextxy(WIDTH / 2 - 35, GUIDE_BACK_Y1 + 8, (char *)"BACK");
+  tw = textwidth((char *)"QUAY LAI");
+  th = textheight((char *)"QUAY LAI");
+  btnCY = (GUIDE_BACK_Y1 + GUIDE_BACK_Y2) / 2;
+  outtextxy(WIDTH / 2 - tw / 2, btnCY - th / 2, (char *)"QUAY LAI");
 
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 1);
 }
@@ -2012,8 +2066,9 @@ int handleGuideClick(int mx, int my) {
   return 0;
 }
 
-/* drawPauseMenu(): Ve lop overlay tam dung game */
+/* drawPauseMenu(): Ve lop overlay tam dung game (can giua, tieng Viet) */
 void drawPauseMenu(int hmx, int hmy) {
+  int tw, th, btnCY;
   int contHov = pointInRect(hmx, hmy, CONT_X1, CONT_Y1, CONT_X2, CONT_Y2);
   int exitHov = pointInRect(hmx, hmy, EXIT_X1, EXIT_Y1, EXIT_X2, EXIT_Y2);
 
@@ -2034,28 +2089,35 @@ void drawPauseMenu(int hmx, int hmy) {
   rectangle(PANEL_X1, PANEL_Y1, PANEL_X2, PANEL_Y2);
   rectangle(PANEL_X1 - 2, PANEL_Y1 - 2, PANEL_X2 + 2, PANEL_Y2 + 2);
 
-  /* Tieu de */
+  /* Tieu de (can giua) */
   setcolor(YELLOW);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 3);
-  outtextxy(WIDTH / 2 - 100, PANEL_Y1 + 18, (char *)"PAUSE MENU");
+  tw = textwidth((char *)"TAM DUNG");
+  outtextxy(WIDTH / 2 - tw / 2, PANEL_Y1 + 18, (char *)"TAM DUNG");
 
-  /* --- Nut CONTINUE --- */
+  /* --- Nut TIEP TUC (can giua) --- */
   setfillstyle(SOLID_FILL, contHov ? BLUE : DARKGRAY);
   bar(CONT_X1, CONT_Y1, CONT_X2, CONT_Y2);
   setcolor(contHov ? WHITE : LIGHTCYAN);
   rectangle(CONT_X1, CONT_Y1, CONT_X2, CONT_Y2);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
   setcolor(contHov ? YELLOW : WHITE);
-  outtextxy(WIDTH / 2 - 65, CONT_Y1 + 8, (char *)"CONTINUE");
+  tw = textwidth((char *)"TIEP TUC");
+  th = textheight((char *)"TIEP TUC");
+  btnCY = (CONT_Y1 + CONT_Y2) / 2;
+  outtextxy(WIDTH / 2 - tw / 2, btnCY - th / 2, (char *)"TIEP TUC");
 
-  /* --- Nut EXIT --- */
+  /* --- Nut THOAT (can giua) --- */
   setfillstyle(SOLID_FILL, exitHov ? RED : DARKGRAY);
   bar(EXIT_X1, EXIT_Y1, EXIT_X2, EXIT_Y2);
   setcolor(exitHov ? WHITE : LIGHTRED);
   rectangle(EXIT_X1, EXIT_Y1, EXIT_X2, EXIT_Y2);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
   setcolor(exitHov ? YELLOW : WHITE);
-  outtextxy(WIDTH / 2 - 35, EXIT_Y1 + 8, (char *)"EXIT");
+  tw = textwidth((char *)"THOAT");
+  th = textheight((char *)"THOAT");
+  btnCY = (EXIT_Y1 + EXIT_Y2) / 2;
+  outtextxy(WIDTH / 2 - tw / 2, btnCY - th / 2, (char *)"THOAT");
 
   /* Reset font */
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 1);
@@ -2071,9 +2133,10 @@ int handlePauseMenuClick(int mx, int my) {
   return 0;
 }
 
-/* drawGameOverScreen(): Ve man hinh game over voi cac nut */
+/* drawGameOverScreen(): Ve man hinh ket thuc (can giua, tieng Viet) */
 void drawGameOverScreen(int score, int level, int mx, int my) {
   char buf[80];
+  int tw, th, btnCY;
   int replayHov = pointInRect(mx, my, GAMEOVER_REPLAY_X1, GAMEOVER_REPLAY_Y1,
                               GAMEOVER_REPLAY_X2, GAMEOVER_REPLAY_Y2);
   int menuHov = pointInRect(mx, my, GAMEOVER_MENU_X1, GAMEOVER_MENU_Y1,
@@ -2089,23 +2152,27 @@ void drawGameOverScreen(int score, int level, int mx, int my) {
   rectangle(WIDTH / 2 - 282, HEIGHT / 2 - 142, WIDTH / 2 + 282,
             HEIGHT / 2 + 192);
 
-  /* Tieu de GAME OVER */
+  /* Tieu de KET THUC (can giua) */
+  setcolor(RED);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 7);
-  outtextxy(WIDTH / 2 - 210, HEIGHT / 2 - 110, (char *)"GAME OVER");
+  tw = textwidth((char *)"KET THUC");
+  outtextxy(WIDTH / 2 - tw / 2, HEIGHT / 2 - 120, (char *)"KET THUC");
 
-  /* Diem so */
+  /* Diem so (can giua) */
   setcolor(YELLOW);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 3);
-  sprintf(buf, "Final Score: %d", score);
-  outtextxy(WIDTH / 2 - 130, HEIGHT / 2 - 10, buf);
+  sprintf(buf, "Diem: %d", score);
+  tw = textwidth(buf);
+  outtextxy(WIDTH / 2 - tw / 2, HEIGHT / 2 - 10, buf);
 
-  /* Level dat duoc */
+  /* Level dat duoc (can giua) */
   setcolor(LIGHTCYAN);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
-  sprintf(buf, "Level Reached: %d", level);
-  outtextxy(WIDTH / 2 - 100, HEIGHT / 2 + 20, buf);
+  sprintf(buf, "Cap do dat duoc: %d", level);
+  tw = textwidth(buf);
+  outtextxy(WIDTH / 2 - tw / 2, HEIGHT / 2 + 20, buf);
 
-  /* --- Nut REPLAY --- */
+  /* --- Nut CHOI LAI (can giua) --- */
   setfillstyle(SOLID_FILL, replayHov ? GREEN : DARKGRAY);
   bar(GAMEOVER_REPLAY_X1, GAMEOVER_REPLAY_Y1, GAMEOVER_REPLAY_X2,
       GAMEOVER_REPLAY_Y2);
@@ -2113,16 +2180,22 @@ void drawGameOverScreen(int score, int level, int mx, int my) {
   rectangle(GAMEOVER_REPLAY_X1, GAMEOVER_REPLAY_Y1, GAMEOVER_REPLAY_X2,
             GAMEOVER_REPLAY_Y2);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 3);
-  outtextxy(WIDTH / 2 - 60, GAMEOVER_REPLAY_Y1 + 12, (char *)"REPLAY");
+  tw = textwidth((char *)"CHOI LAI");
+  th = textheight((char *)"CHOI LAI");
+  btnCY = (GAMEOVER_REPLAY_Y1 + GAMEOVER_REPLAY_Y2) / 2;
+  outtextxy(WIDTH / 2 - tw / 2, btnCY - th / 2, (char *)"CHOI LAI");
 
-  /* --- Nut EXIT TO MENU --- */
+  /* --- Nut VE MENU (can giua) --- */
   setfillstyle(SOLID_FILL, menuHov ? RED : DARKGRAY);
   bar(GAMEOVER_MENU_X1, GAMEOVER_MENU_Y1, GAMEOVER_MENU_X2, GAMEOVER_MENU_Y2);
   setcolor(menuHov ? YELLOW : LIGHTRED);
   rectangle(GAMEOVER_MENU_X1, GAMEOVER_MENU_Y1, GAMEOVER_MENU_X2,
             GAMEOVER_MENU_Y2);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
-  outtextxy(WIDTH / 2 - 95, GAMEOVER_MENU_Y1 + 8, (char *)"EXIT TO MENU");
+  tw = textwidth((char *)"VE MENU CHINH");
+  th = textheight((char *)"VE MENU CHINH");
+  btnCY = (GAMEOVER_MENU_Y1 + GAMEOVER_MENU_Y2) / 2;
+  outtextxy(WIDTH / 2 - tw / 2, btnCY - th / 2, (char *)"VE MENU CHINH");
 
   /* Reset */
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 1);
