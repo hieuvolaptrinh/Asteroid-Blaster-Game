@@ -61,6 +61,52 @@
 #define EXIT_X2 (WIDTH / 2 + 120)
 #define EXIT_Y2 (HEIGHT / 2 + 70)
 
+/* Toa do cac nut trong Main Menu */
+#define MENU_START_X1 (WIDTH / 2 - 150)
+#define MENU_START_Y1 (HEIGHT / 2 - 20)
+#define MENU_START_X2 (WIDTH / 2 + 150)
+#define MENU_START_Y2 (HEIGHT / 2 + 30)
+
+#define MENU_GUIDE_X1 (WIDTH / 2 - 150)
+#define MENU_GUIDE_Y1 (HEIGHT / 2 + 50)
+#define MENU_GUIDE_X2 (WIDTH / 2 + 150)
+#define MENU_GUIDE_Y2 (HEIGHT / 2 + 100)
+
+#define MENU_EXIT_X1 (WIDTH / 2 - 150)
+#define MENU_EXIT_Y1 (HEIGHT / 2 + 120)
+#define MENU_EXIT_X2 (WIDTH / 2 + 150)
+#define MENU_EXIT_Y2 (HEIGHT / 2 + 170)
+
+/* Toa do nut BACK trong Guide */
+#define GUIDE_BACK_X1 (WIDTH / 2 - 100)
+#define GUIDE_BACK_Y1 (HEIGHT - 80)
+#define GUIDE_BACK_X2 (WIDTH / 2 + 100)
+#define GUIDE_BACK_Y2 (HEIGHT - 40)
+
+/* Toa do cac nut trong Game Over */
+#define GAMEOVER_REPLAY_X1 (WIDTH / 2 - 150)
+#define GAMEOVER_REPLAY_Y1 (HEIGHT / 2 + 50)
+#define GAMEOVER_REPLAY_X2 (WIDTH / 2 + 150)
+#define GAMEOVER_REPLAY_Y2 (HEIGHT / 2 + 100)
+
+#define GAMEOVER_MENU_X1 (WIDTH / 2 - 150)
+#define GAMEOVER_MENU_Y1 (HEIGHT / 2 + 120)
+#define GAMEOVER_MENU_X2 (WIDTH / 2 + 150)
+#define GAMEOVER_MENU_Y2 (HEIGHT / 2 + 170)
+
+/* Forward declarations */
+void drawStars(void);
+int pointInRect(int x, int y, int x1, int y1, int x2, int y2);
+
+/* Game States */
+typedef enum {
+  STATE_MAIN_MENU,
+  STATE_GUIDE,
+  STATE_PLAYING,
+  STATE_PAUSED,
+  STATE_GAME_OVER
+} GameState;
+
 /*
  * Nang cap xoay vong: pelletsPerShot -> bulletDamage -> shootCooldown -> lap
  * lai.
@@ -159,6 +205,7 @@ static GameConfig gCfg;
 
 static int sX[MAX_STARS], sY[MAX_STARS], sB[MAX_STARS];
 static int starsReady = 0;
+static int gCurrentBGImage = 4; /* Chi so anh BMP hien tai (4, 5, 6...) */
 
 static unsigned int seedRand(unsigned int s, int i) {
   s = s * 1103515245u + 12345u + (unsigned int)i * 2654435761u;
@@ -767,6 +814,564 @@ void drawStars(void) {
   }
 }
 
+/* ======================================================================
+ * drawLevel2Background(): He Mat Troi ruc lua + Phi thuyen Alien
+ * ====================================================================== */
+void drawLevel2Background(void) {
+  int i, r;
+  drawStars();
+
+  /* --- Hao quang Mat Troi (Corona) --- */
+  for (r = 220; r >= 30; r -= 20) {
+    int c;
+    if (r > 180)
+      c = DARKGRAY;
+    else if (r > 140)
+      c = RED;
+    else if (r > 100)
+      c = LIGHTRED;
+    else if (r > 60)
+      c = YELLOW;
+    else
+      c = WHITE;
+    setcolor(c);
+    circle(0, 0, r);
+  }
+
+  /* Than Mat Troi */
+  setfillstyle(SOLID_FILL, RED);
+  fillellipse(0, 0, 200, 200);
+  setfillstyle(SOLID_FILL, LIGHTRED);
+  fillellipse(0, 0, 140, 140);
+  setfillstyle(SOLID_FILL, YELLOW);
+  fillellipse(0, 0, 80, 80);
+  setfillstyle(SOLID_FILL, WHITE);
+  fillellipse(0, 0, 30, 30);
+
+  /* --- Tia sang Mat Troi (Solar Flares) --- */
+  for (i = 0; i < 12; i++) {
+    float angle = i * 30.0f * 3.14159f / 180.0f;
+    int x1 = (int)(cosf(angle) * 210);
+    int y1 = (int)(sinf(angle) * 210);
+    int x2 = (int)(cosf(angle) * 280);
+    int y2 = (int)(sinf(angle) * 280);
+    setcolor((i % 2) ? YELLOW : LIGHTRED);
+    line(x1, y1, x2, y2);
+  }
+
+  /* --- Quy dao hanh tinh --- */
+  setcolor(DARKGRAY);
+  setlinestyle(DASHED_LINE, 0, 1);
+  for (r = 250; r <= 850; r += 150) {
+    ellipse(0, 0, 0, 90, r, r);
+  }
+  setlinestyle(SOLID_LINE, 0, 1);
+
+  /* --- Cac hanh tinh voi chi tiet --- */
+  {
+    int pOrbit[] = {250, 400, 550, 700, 850};
+    int pAngle[] = {75, 60, 45, 30, 15};
+    int pColor[] = {LIGHTGRAY, YELLOW, CYAN, LIGHTRED, BROWN};
+    for (i = 0; i < 5; i++) {
+      float rad = (float)pAngle[i] * 3.14159f / 180.0f;
+      int px = (int)(cosf(rad) * pOrbit[i]);
+      int py = (int)(sinf(rad) * pOrbit[i]);
+
+      /* Bong hanh tinh */
+      setfillstyle(SOLID_FILL, DARKGRAY);
+      fillellipse(px + 2, py + 2, 13, 13);
+
+      /* Than hanh tinh */
+      setfillstyle(SOLID_FILL, pColor[i]);
+      fillellipse(px, py, 12, 12);
+
+      /* Highlight 3D */
+      setfillstyle(SOLID_FILL, WHITE);
+      fillellipse(px - 4, py - 4, 3, 3);
+
+      /* Vanh dai Sao Tho */
+      if (i == 4) {
+        setcolor(LIGHTGRAY);
+        ellipse(px, py, 0, 360, 22, 8);
+        ellipse(px, py, 0, 360, 20, 7);
+      }
+    }
+  }
+
+  /* --- Phi thuyen Alien bay qua (UFO) --- */
+  {
+    int ux = WIDTH - 200, uy = 150;
+    /* Than UFO */
+    setfillstyle(SOLID_FILL, LIGHTGRAY);
+    fillellipse(ux, uy, 35, 12);
+    /* Cabin */
+    setfillstyle(SOLID_FILL, CYAN);
+    fillellipse(ux, uy - 8, 15, 10);
+    /* Den UFO */
+    setcolor(YELLOW);
+    circle(ux - 10, uy + 10, 3);
+    circle(ux, uy + 10, 3);
+    circle(ux + 10, uy + 10, 3);
+    /* Tia sang */
+    setcolor(LIGHTCYAN);
+    line(ux, uy + 12, ux - 20, uy + 40);
+    line(ux, uy + 12, ux + 20, uy + 40);
+  }
+}
+
+/* ======================================================================
+ * drawLevel3Background(): Tho Tinh (Saturn) & Tinh Van Nebula Ruc Ro
+ * ====================================================================== */
+void drawLevel3Background(void) {
+  int i, r;
+  unsigned int seed;
+  drawStars();
+
+  /* --- Tinh van Nebula day mau sac --- */
+  seed = 12345u;
+  for (i = 0; i < 400; i++) {
+    int nx, ny, dotColor;
+    seed = seedRand(seed, i);
+    nx = seed % WIDTH;
+    ny = seed % HEIGHT;
+
+    /* Tao dam may tinh van o nhieu vi tri */
+    if ((nx < 450 && ny < 450) || (nx > 750 && ny > 250)) {
+      dotColor = (i % 5 == 0)   ? MAGENTA
+                 : (i % 5 == 1) ? CYAN
+                 : (i % 5 == 2) ? BLUE
+                 : (i % 5 == 3) ? LIGHTMAGENTA
+                                : LIGHTCYAN;
+      putpixel(nx, ny, dotColor);
+      /* Them diem sang xung quanh */
+      if (i % 3 == 0) {
+        putpixel(nx + 1, ny, dotColor);
+        putpixel(nx, ny + 1, dotColor);
+      }
+    }
+  }
+
+  /* --- Sao Tho (Saturn) khong lo --- */
+  {
+    int sx = WIDTH / 2;
+    int sy = HEIGHT / 2;
+
+    /* Bong hanh tinh */
+    setfillstyle(SOLID_FILL, DARKGRAY);
+    fillellipse(sx + 5, sy + 5, 108, 98);
+
+    /* Than hanh tinh - nhieu lop tao hieu ung 3D */
+    setfillstyle(SOLID_FILL, BROWN);
+    fillellipse(sx, sy, 105, 95);
+    setfillstyle(SOLID_FILL, YELLOW);
+    fillellipse(sx, sy, 90, 80);
+    setfillstyle(SOLID_FILL, LIGHTRED);
+    fillellipse(sx - 10, sy - 10, 40, 35);
+    setfillstyle(SOLID_FILL, WHITE);
+    fillellipse(sx - 25, sy - 25, 20, 15);
+
+    /* Vanh dai (Rings) - nhieu lop */
+    setcolor(DARKGRAY);
+    for (r = 140; r < 200; r += 3) {
+      ellipse(sx, sy, 20, 160, r, r / 3);
+    }
+    setcolor(LIGHTGRAY);
+    for (r = 140; r < 200; r += 3) {
+      ellipse(sx, sy, 200, 340, r, r / 3);
+    }
+    /* Vanh sang nhat */
+    setcolor(WHITE);
+    ellipse(sx, sy, 200, 340, 160, 53);
+  }
+
+  /* --- Cac ngoi sao sang --- */
+  for (i = 0; i < 20; i++) {
+    int sx = (i * 73) % WIDTH;
+    int sy = (i * 97) % HEIGHT;
+    setcolor(WHITE);
+    putpixel(sx, sy, WHITE);
+    putpixel(sx + 1, sy, WHITE);
+    putpixel(sx, sy + 1, WHITE);
+    putpixel(sx - 1, sy, WHITE);
+    putpixel(sx, sy - 1, WHITE);
+  }
+
+  /* --- Phi thuyen Alien nho --- */
+  {
+    int ux = 150, uy = HEIGHT - 150;
+    setfillstyle(SOLID_FILL, DARKGRAY);
+    fillellipse(ux, uy, 25, 8);
+    setfillstyle(SOLID_FILL, LIGHTCYAN);
+    fillellipse(ux, uy - 5, 10, 7);
+    setcolor(YELLOW);
+    circle(ux - 8, uy + 6, 2);
+    circle(ux + 8, uy + 6, 2);
+  }
+}
+
+/* ======================================================================
+ * drawLevel4Background(): Trai Dat + Mat Trang + Tram Vu Tru
+ * ====================================================================== */
+void drawLevel4Background(void) {
+  int i;
+  drawStars();
+
+  /* --- Trai Dat o goc duoi phai --- */
+  int ex = WIDTH - 150;
+  int ey = HEIGHT + 80;
+
+  /* Bong Trai Dat */
+  setfillstyle(SOLID_FILL, DARKGRAY);
+  fillellipse(ex + 5, ey + 5, 185, 185);
+
+  /* Dai duong */
+  setfillstyle(SOLID_FILL, BLUE);
+  fillellipse(ex, ey, 180, 180);
+
+  /* Luc dia chi tiet */
+  setfillstyle(SOLID_FILL, GREEN);
+  fillellipse(ex - 40, ey - 50, 60, 50);
+  fillellipse(ex + 30, ey - 20, 50, 40);
+  fillellipse(ex - 20, ey + 40, 45, 35);
+  fillellipse(ex + 50, ey + 30, 35, 30);
+
+  /* May trang */
+  setfillstyle(SOLID_FILL, WHITE);
+  fillellipse(ex - 60, ey - 80, 20, 12);
+  fillellipse(ex + 40, ey - 90, 25, 15);
+
+  /* --- Mat Trang --- */
+  int mx = 120, my = 120;
+
+  /* Bong Mat Trang */
+  setfillstyle(SOLID_FILL, DARKGRAY);
+  fillellipse(mx + 3, my + 3, 73, 73);
+
+  /* Than Mat Trang */
+  setfillstyle(SOLID_FILL, LIGHTGRAY);
+  fillellipse(mx, my, 70, 70);
+
+  /* Cac mieng nui lua */
+  setfillstyle(SOLID_FILL, DARKGRAY);
+  fillellipse(mx - 20, my - 15, 12, 12);
+  fillellipse(mx + 15, my + 10, 15, 15);
+  fillellipse(mx + 10, my - 25, 8, 8);
+  fillellipse(mx - 25, my + 20, 10, 10);
+  fillellipse(mx + 30, my - 10, 7, 7);
+
+  /* --- Tram Vu Tru (Space Station) --- */
+  {
+    int stx = WIDTH / 2 + 200, sty = 100;
+
+    /* Than chinh */
+    setcolor(LIGHTGRAY);
+    rectangle(stx - 30, sty - 10, stx + 30, sty + 10);
+    setfillstyle(SOLID_FILL, DARKGRAY);
+    bar(stx - 30, sty - 10, stx + 30, sty + 10);
+
+    /* Tam giac */
+    setfillstyle(SOLID_FILL, CYAN);
+    int panel[] = {stx - 50, sty,      stx - 30, sty - 20,
+                   stx - 30, sty + 20, stx - 50, sty};
+    fillpoly(4, panel);
+    int panel2[] = {stx + 50, sty,      stx + 30, sty - 20,
+                    stx + 30, sty + 20, stx + 50, sty};
+    fillpoly(4, panel2);
+
+    /* Den */
+    setcolor(YELLOW);
+    circle(stx - 20, sty, 3);
+    circle(stx, sty, 3);
+    circle(stx + 20, sty, 3);
+  }
+
+  /* --- Sao bang --- */
+  for (i = 0; i < 3; i++) {
+    int sx = 300 + i * 200;
+    int sy = 200 + i * 100;
+    setcolor(WHITE);
+    line(sx, sy, sx + 30, sy + 15);
+    line(sx + 5, sy + 3, sx + 35, sy + 18);
+    setcolor(YELLOW);
+    line(sx + 10, sy + 6, sx + 40, sy + 21);
+  }
+}
+
+/* ======================================================================
+ * drawLevel5Background(): Sao Hoa + Giai Ngan Ha Spiral
+ * ====================================================================== */
+void drawLevel5Background(void) {
+  int i, r;
+  drawStars();
+
+  /* --- Giai Ngan Ha Spiral (Milky Way) --- */
+  {
+    int gx = WIDTH - 250, gy = 150;
+
+    /* Tam giai ngan ha */
+    setfillstyle(SOLID_FILL, WHITE);
+    fillellipse(gx, gy, 15, 15);
+
+    /* Cac vong xoay oc */
+    for (r = 25; r < 120; r += 15) {
+      int c = (r < 50) ? WHITE : (r < 80) ? LIGHTCYAN : CYAN;
+      setcolor(c);
+      ellipse(gx, gy, 0, 360, r, r / 2);
+      ellipse(gx, gy, 0, 360, r, r / 3);
+    }
+
+    /* Cac ngoi sao trong giai ngan ha */
+    unsigned int seed = 99999u;
+    for (i = 0; i < 100; i++) {
+      seed = seedRand(seed, i);
+      int sx = gx + (seed % 200) - 100;
+      int sy = gy + ((seed / 7) % 100) - 50;
+      int dist = (sx - gx) * (sx - gx) + (sy - gy) * (sy - gy);
+      if (dist < 10000) {
+        setcolor((i % 3) ? WHITE : YELLOW);
+        putpixel(sx, sy, (i % 3) ? WHITE : YELLOW);
+      }
+    }
+  }
+
+  /* --- Sao Hoa (Venus) --- */
+  int vx = 200, vy = HEIGHT / 2;
+
+  /* Bong */
+  setfillstyle(SOLID_FILL, DARKGRAY);
+  fillellipse(vx + 5, vy + 5, 125, 125);
+
+  /* Than hanh tinh */
+  setfillstyle(SOLID_FILL, BROWN);
+  fillellipse(vx, vy, 120, 120);
+  setfillstyle(SOLID_FILL, YELLOW);
+  fillellipse(vx, vy, 100, 100);
+  setfillstyle(SOLID_FILL, LIGHTRED);
+  fillellipse(vx - 20, vy - 20, 40, 40);
+  setfillstyle(SOLID_FILL, WHITE);
+  fillellipse(vx - 30, vy - 30, 25, 25);
+
+  /* --- Tieu hanh tinh bay roi rac --- */
+  {
+    int astPos[][2] = {{500, 150},  {750, 400}, {950, 200}, {600, 550},
+                       {1050, 500}, {400, 300}, {850, 150}};
+    for (i = 0; i < 7; i++) {
+      int ax = astPos[i][0];
+      int ay = astPos[i][1];
+      int ar = 15 + (i * 7) % 25;
+
+      /* Bong */
+      setfillstyle(SOLID_FILL, BLACK);
+      fillellipse(ax + 2, ay + 2, ar + 2, ar + 2);
+
+      /* Than */
+      setfillstyle(SOLID_FILL, DARKGRAY);
+      fillellipse(ax, ay, ar, ar);
+      setcolor(LIGHTGRAY);
+      circle(ax, ay, ar);
+
+      /* Mieng nui lua */
+      setcolor(DARKGRAY);
+      circle(ax - ar / 3, ay - ar / 3, ar / 4);
+    }
+  }
+
+  /* --- Phi thuyen Alien lon --- */
+  {
+    int ux = WIDTH / 2, uy = HEIGHT - 100;
+
+    /* Bong UFO */
+    setfillstyle(SOLID_FILL, BLACK);
+    fillellipse(ux + 3, uy + 3, 48, 17);
+
+    /* Than UFO */
+    setfillstyle(SOLID_FILL, LIGHTGRAY);
+    fillellipse(ux, uy, 45, 15);
+
+    /* Cabin */
+    setfillstyle(SOLID_FILL, CYAN);
+    fillellipse(ux, uy - 10, 20, 12);
+    setfillstyle(SOLID_FILL, LIGHTCYAN);
+    fillellipse(ux, uy - 12, 15, 8);
+
+    /* Den UFO */
+    setcolor(YELLOW);
+    for (i = -2; i <= 2; i++) {
+      circle(ux + i * 12, uy + 12, 3);
+    }
+
+    /* Tia sang xuong duoi */
+    setcolor(LIGHTCYAN);
+    line(ux - 15, uy + 15, ux - 35, uy + 60);
+    line(ux + 15, uy + 15, ux + 35, uy + 60);
+    line(ux, uy + 15, ux, uy + 65);
+  }
+}
+
+/* ======================================================================
+ * drawLevel6Background(): Lo Den (Black Hole) + Tinh Van + Vo Cuc
+ * ====================================================================== */
+void drawLevel6Background(void) {
+  int i, r;
+  drawStars();
+
+  /* --- Tinh van vo cuc phia sau --- */
+  {
+    unsigned int seed = 77777u;
+    for (i = 0; i < 500; i++) {
+      seed = seedRand(seed, i);
+      int nx = seed % WIDTH;
+      int ny = seed % HEIGHT;
+      int c = (i % 7 == 0)   ? MAGENTA
+              : (i % 7 == 1) ? CYAN
+              : (i % 7 == 2) ? BLUE
+              : (i % 7 == 3) ? LIGHTMAGENTA
+              : (i % 7 == 4) ? LIGHTCYAN
+              : (i % 7 == 5) ? LIGHTBLUE
+                             : DARKGRAY;
+      putpixel(nx, ny, c);
+    }
+  }
+
+  /* --- Lo Den o chinh giua --- */
+  int bx = WIDTH / 2;
+  int by = HEIGHT / 2;
+
+  /* Hao quang xung quanh lo den */
+  for (r = 220; r > 180; r -= 5) {
+    setcolor(DARKGRAY);
+    circle(bx, by, r);
+  }
+
+  /* Dia tich tu (Accretion Disk) - nhieu lop */
+  for (r = 180; r > 40; r -= 8) {
+    int c;
+    if (r > 160)
+      c = BLUE;
+    else if (r > 140)
+      c = CYAN;
+    else if (r > 120)
+      c = LIGHTCYAN;
+    else if (r > 100)
+      c = MAGENTA;
+    else if (r > 80)
+      c = LIGHTMAGENTA;
+    else if (r > 60)
+      c = RED;
+    else
+      c = DARKGRAY;
+
+    setcolor(c);
+    ellipse(bx, by, 0, 360, r, r / 2);
+    ellipse(bx, by, 0, 360, r - 2, r / 2 - 1);
+  }
+
+  /* Tam lo den - den tuyet doi */
+  setfillstyle(SOLID_FILL, BLACK);
+  fillellipse(bx, by, 40, 40);
+
+  /* Event Horizon */
+  setcolor(DARKGRAY);
+  circle(bx, by, 40);
+  circle(bx, by, 41);
+  circle(bx, by, 42);
+
+  /* --- Cac ngoi sao bi hut vao --- */
+  for (i = 0; i < 15; i++) {
+    float angle = i * 24.0f * 3.14159f / 180.0f;
+    int dist = 60 + (i * 13) % 80;
+    int sx = bx + (int)(cosf(angle) * dist);
+    int sy = by + (int)(sinf(angle) * dist);
+
+    setcolor((i % 2) ? YELLOW : WHITE);
+    circle(sx, sy, 2);
+
+    /* Duong keo dai bi hut */
+    setcolor(DARKGRAY);
+    line(sx, sy, bx, by);
+  }
+
+  /* --- Phi thuyen Alien chay tron --- */
+  {
+    int ux = 150, uy = 150;
+
+    /* Than UFO */
+    setfillstyle(SOLID_FILL, LIGHTGRAY);
+    fillellipse(ux, uy, 30, 10);
+
+    /* Cabin */
+    setfillstyle(SOLID_FILL, LIGHTCYAN);
+    fillellipse(ux, uy - 6, 12, 8);
+
+    /* Den canh bao */
+    setcolor(RED);
+    circle(ux - 10, uy + 8, 2);
+    circle(ux + 10, uy + 8, 2);
+
+    /* Duong di chuyen */
+    setcolor(DARKGRAY);
+    setlinestyle(DASHED_LINE, 0, 1);
+    line(ux, uy, ux + 100, uy - 50);
+    setlinestyle(SOLID_LINE, 0, 1);
+  }
+
+  /* --- Sao bang bay qua --- */
+  for (i = 0; i < 5; i++) {
+    int sx = 100 + i * 250;
+    int sy = 500 + i * 40;
+    setcolor(WHITE);
+    line(sx, sy, sx + 40, sy + 20);
+    setcolor(YELLOW);
+    line(sx + 5, sy + 2, sx + 45, sy + 22);
+    setcolor(LIGHTCYAN);
+    line(sx + 10, sy + 5, sx + 50, sy + 25);
+  }
+
+  /* --- Tinh van vo cuc (Infinity Symbol) --- */
+  {
+    int ix = WIDTH - 200, iy = HEIGHT - 150;
+    setcolor(CYAN);
+    ellipse(ix - 30, iy, 0, 360, 40, 25);
+    ellipse(ix + 30, iy, 0, 360, 40, 25);
+    setcolor(LIGHTCYAN);
+    ellipse(ix - 30, iy, 0, 360, 35, 20);
+    ellipse(ix + 30, iy, 0, 360, 35, 20);
+  }
+}
+
+/* ======================================================================
+ * drawBackground(): Ham dieu phoi tong
+ * ====================================================================== */
+void drawBackground(int level) {
+  switch (level) {
+  case 1:
+    drawStars();
+    break;
+  case 2:
+    drawLevel2Background();
+    break;
+  case 3:
+    drawLevel3Background();
+    break;
+  case 4:
+    drawLevel4Background();
+    break;
+  case 5:
+    drawLevel5Background();
+    break;
+  case 6:
+    drawLevel6Background();
+    break;
+  default:
+    /* Level 7+: Xoay vong lai cac background */
+    {
+      int bgIndex = ((level - 1) % 6) + 1; /* 1-6 */
+      drawBackground(bgIndex);
+    }
+    break;
+  }
+}
+
 /* --- Phi thuyen --- */
 
 /* drawShipBody(): Ve than phi thuyen gom 3 phan: than chinh, canh trai, canh
@@ -1174,7 +1779,7 @@ void drawHUD(int score, int hp, int level, Ship ship, SkillSystem *sk) {
 
   /* Skill cooldown (duoi phai) */
   {
-    int sx = WIDTH - 360, sy = HEIGHT - 52;
+    int sx = WIDTH - 360, sy = HEIGHT - 80;
     float cd;
     int color;
 
@@ -1245,33 +1850,6 @@ void drawLevelBanner(int level) {
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 1);       /* Reset co chu */
 }
 
-/* --- Game Over --- */
-void drawGameOver(int score, int level) {
-  char buf[80];
-  setfillstyle(SOLID_FILL, BLACK);
-  bar(0, 0, WIDTH, HEIGHT); /* Xoa man hinh bang mau den */
-  setcolor(RED);
-  rectangle(WIDTH / 2 - 280, HEIGHT / 2 - 140, WIDTH / 2 + 280,
-            HEIGHT / 2 + 130);
-  rectangle(WIDTH / 2 - 282, HEIGHT / 2 - 142, WIDTH / 2 + 282,
-            HEIGHT / 2 + 132);              /* Vien doi */
-  settextstyle(DEFAULT_FONT, HORIZ_DIR, 7); /* Co chu 7 (cuc lon) */
-  outtextxy(WIDTH / 2 - 210, HEIGHT / 2 - 110, (char *)"GAME OVER");
-  setcolor(YELLOW);
-  settextstyle(DEFAULT_FONT, HORIZ_DIR, 3);
-  sprintf(buf, "Final Score: %d", score);
-  outtextxy(WIDTH / 2 - 130, HEIGHT / 2 - 10, buf);
-  setcolor(LIGHTCYAN);
-  settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
-  sprintf(buf, "Level Reached: %d", level);
-  outtextxy(WIDTH / 2 - 100, HEIGHT / 2 + 40, buf);
-  setcolor(WHITE);
-  settextstyle(DEFAULT_FONT, HORIZ_DIR, 1);
-  outtextxy(WIDTH / 2 - 110, HEIGHT / 2 + 90,
-            (char *)"Press any key to exit...");
-  /* Sau khi ham nay tra ve, main() goi getch() de doi nguoi choi bam phim */
-}
-
 /* pointInRect(): Kiem tra xem diem (x, y) co nam trong hinh chu nhat hay khong.
  * Tra ve 1 neu nam trong, 0 neu o ngoai. Dung de: kiem tra click chuot vao nut.
  */
@@ -1279,33 +1857,167 @@ int pointInRect(int x, int y, int x1, int y1, int x2, int y2) {
   return (x >= x1 && x <= x2 && y >= y1 && y <= y2) ? 1 : 0;
 }
 
-/* drawMenuButton(): Ve nut hamburger (3 gach ngang) goc trai tren.
-. */
-void drawMenuButton(int hovered) {
-  /* Nen nut */
-  setfillstyle(SOLID_FILL, hovered ? DARKGRAY : BLACK);
-  bar(MENU_BTN_X1, MENU_BTN_Y1, MENU_BTN_X2, MENU_BTN_Y2);
-  /* Vien */
-  setcolor(hovered ? WHITE : LIGHTGRAY);
-  rectangle(MENU_BTN_X1, MENU_BTN_Y1, MENU_BTN_X2, MENU_BTN_Y2);
-  /* 3 gach ngang (hamburger icon) */
-  int cx = (MENU_BTN_X1 + MENU_BTN_X2) / 2;
-  int cy = (MENU_BTN_Y1 + MENU_BTN_Y2) / 2;
-  setcolor(hovered ? YELLOW : WHITE);
-  line(cx - 12, cy - 7, cx + 12, cy - 7);
-  line(cx - 12, cy, cx + 12, cy);
-  line(cx - 12, cy + 7, cx + 12, cy + 7);
+/* ======================================================================
+ * UI FUNCTIONS (Menu, Guide, Pause, Game Over)
+ * ====================================================================== */
+
+/* drawMainMenu(): Ve man hinh menu chinh */
+void drawMainMenu(int mx, int my) {
+  int startHov = pointInRect(mx, my, MENU_START_X1, MENU_START_Y1,
+                             MENU_START_X2, MENU_START_Y2);
+  int guideHov = pointInRect(mx, my, MENU_GUIDE_X1, MENU_GUIDE_Y1,
+                             MENU_GUIDE_X2, MENU_GUIDE_Y2);
+  int exitHov = pointInRect(mx, my, MENU_EXIT_X1, MENU_EXIT_Y1, MENU_EXIT_X2,
+                            MENU_EXIT_Y2);
+
+  cleardevice();
+  drawStars();
+
+  /* --- Tieu de game --- */
+  setcolor(YELLOW);
+  settextstyle(DEFAULT_FONT, HORIZ_DIR, 7);
+  outtextxy(WIDTH / 2 - 280, HEIGHT / 2 - 180, (char *)"ASTEROID");
+  setcolor(CYAN);
+  outtextxy(WIDTH / 2 - 200, HEIGHT / 2 - 100, (char *)"BLASTER");
+
+  /* Phien ban */
+  setcolor(LIGHTGRAY);
+  settextstyle(DEFAULT_FONT, HORIZ_DIR, 1);
+  outtextxy(WIDTH / 2 - 30, HEIGHT / 2 - 50, (char *)"v3.0");
+
+  /* --- Nut START GAME --- */
+  setfillstyle(SOLID_FILL, startHov ? GREEN : DARKGRAY);
+  bar(MENU_START_X1, MENU_START_Y1, MENU_START_X2, MENU_START_Y2);
+  setcolor(startHov ? YELLOW : WHITE);
+  rectangle(MENU_START_X1, MENU_START_Y1, MENU_START_X2, MENU_START_Y2);
+  settextstyle(DEFAULT_FONT, HORIZ_DIR, 3);
+  outtextxy(WIDTH / 2 - 90, MENU_START_Y1 + 12, (char *)"START GAME");
+
+  /* --- Nut GUIDE --- */
+  setfillstyle(SOLID_FILL, guideHov ? BLUE : DARKGRAY);
+  bar(MENU_GUIDE_X1, MENU_GUIDE_Y1, MENU_GUIDE_X2, MENU_GUIDE_Y2);
+  setcolor(guideHov ? YELLOW : LIGHTCYAN);
+  rectangle(MENU_GUIDE_X1, MENU_GUIDE_Y1, MENU_GUIDE_X2, MENU_GUIDE_Y2);
+  settextstyle(DEFAULT_FONT, HORIZ_DIR, 3);
+  outtextxy(WIDTH / 2 - 50, MENU_GUIDE_Y1 + 12, (char *)"GUIDE");
+
+  /* --- Nut EXIT --- */
+  setfillstyle(SOLID_FILL, exitHov ? RED : DARKGRAY);
+  bar(MENU_EXIT_X1, MENU_EXIT_Y1, MENU_EXIT_X2, MENU_EXIT_Y2);
+  setcolor(exitHov ? YELLOW : LIGHTRED);
+  rectangle(MENU_EXIT_X1, MENU_EXIT_Y1, MENU_EXIT_X2, MENU_EXIT_Y2);
+  settextstyle(DEFAULT_FONT, HORIZ_DIR, 3);
+  outtextxy(WIDTH / 2 - 35, MENU_EXIT_Y1 + 12, (char *)"EXIT");
+
+  /* Reset */
+  settextstyle(DEFAULT_FONT, HORIZ_DIR, 1);
 }
 
-/*
- * drawPauseMenu(): Ve lop overlay tam dung game.
- */
+/* handleMainMenuClick(): Xu ly click chuot trong menu chinh
+ * Tra ve: 1=Start, 2=Guide, 3=Exit, 0=khong click gi */
+int handleMainMenuClick(int mx, int my) {
+  if (pointInRect(mx, my, MENU_START_X1, MENU_START_Y1, MENU_START_X2,
+                  MENU_START_Y2))
+    return 1;
+  if (pointInRect(mx, my, MENU_GUIDE_X1, MENU_GUIDE_Y1, MENU_GUIDE_X2,
+                  MENU_GUIDE_Y2))
+    return 2;
+  if (pointInRect(mx, my, MENU_EXIT_X1, MENU_EXIT_Y1, MENU_EXIT_X2,
+                  MENU_EXIT_Y2))
+    return 3;
+  return 0;
+}
+
+/* drawGuideScreen(): Hien thi huong dan choi game */
+void drawGuideScreen(int mx, int my) {
+  int backHov = pointInRect(mx, my, GUIDE_BACK_X1, GUIDE_BACK_Y1, GUIDE_BACK_X2,
+                            GUIDE_BACK_Y2);
+
+  cleardevice();
+  drawStars();
+
+  /* Tieu de */
+  setcolor(YELLOW);
+  settextstyle(DEFAULT_FONT, HORIZ_DIR, 4);
+  outtextxy(WIDTH / 2 - 150, 30, (char *)"HOW TO PLAY");
+
+  settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
+
+  /* Dieu khien */
+  setcolor(LIGHTCYAN);
+  outtextxy(100, 100, (char *)"CONTROLS:");
+
+  setcolor(WHITE);
+  settextstyle(DEFAULT_FONT, HORIZ_DIR, 1);
+  outtextxy(120, 130, (char *)"WASD / Arrow Keys - Move ship");
+  outtextxy(120, 150, (char *)"Mouse - Aim direction");
+  outtextxy(120, 170, (char *)"Auto Shoot - Shoots automatically");
+  outtextxy(120, 190, (char *)"ESC - Pause game");
+
+  /* Ky nang */
+  setcolor(LIGHTCYAN);
+  settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
+  outtextxy(100, 230, (char *)"SKILLS:");
+
+  setcolor(YELLOW);
+  settextstyle(DEFAULT_FONT, HORIZ_DIR, 1);
+  outtextxy(120, 260,
+            (char *)"[1] BOMB BURST - Explode area around ship (CD: 8s)");
+
+  setcolor(LIGHTBLUE);
+  outtextxy(120, 280,
+            (char *)"[2] TIME SLOW - Slow asteroids for 4s (CD: 12s)");
+
+  setcolor(LIGHTCYAN);
+  outtextxy(120, 300, (char *)"[3] PIERCING BEAM - Laser beam (CD: 10s)");
+
+  /* Muc tieu */
+  setcolor(LIGHTCYAN);
+  settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
+  outtextxy(100, 350, (char *)"OBJECTIVE:");
+
+  setcolor(WHITE);
+  settextstyle(DEFAULT_FONT, HORIZ_DIR, 1);
+  outtextxy(120, 380, (char *)"- Destroy asteroids to earn points");
+  outtextxy(120, 400, (char *)"- Collect power crystals to upgrade");
+  outtextxy(120, 420, (char *)"- Reach 1000 points per level to advance");
+  outtextxy(120, 440, (char *)"- Survive as long as possible!");
+
+  /* Power-ups */
+  setcolor(LIGHTMAGENTA);
+  settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
+  outtextxy(100, 480, (char *)"POWER CRYSTALS:");
+
+  setcolor(WHITE);
+  settextstyle(DEFAULT_FONT, HORIZ_DIR, 1);
+  outtextxy(120, 510, (char *)"Cycle: Pellets -> Damage -> Fire Rate");
+
+  /* Nut BACK */
+  setfillstyle(SOLID_FILL, backHov ? CYAN : DARKGRAY);
+  bar(GUIDE_BACK_X1, GUIDE_BACK_Y1, GUIDE_BACK_X2, GUIDE_BACK_Y2);
+  setcolor(backHov ? YELLOW : WHITE);
+  rectangle(GUIDE_BACK_X1, GUIDE_BACK_Y1, GUIDE_BACK_X2, GUIDE_BACK_Y2);
+  settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
+  outtextxy(WIDTH / 2 - 35, GUIDE_BACK_Y1 + 8, (char *)"BACK");
+
+  settextstyle(DEFAULT_FONT, HORIZ_DIR, 1);
+}
+
+/* handleGuideClick(): Kiem tra click nut BACK
+ * Tra ve: 1=Back, 0=khong click */
+int handleGuideClick(int mx, int my) {
+  if (pointInRect(mx, my, GUIDE_BACK_X1, GUIDE_BACK_Y1, GUIDE_BACK_X2,
+                  GUIDE_BACK_Y2))
+    return 1;
+  return 0;
+}
+
+/* drawPauseMenu(): Ve lop overlay tam dung game */
 void drawPauseMenu(int hmx, int hmy) {
   int contHov = pointInRect(hmx, hmy, CONT_X1, CONT_Y1, CONT_X2, CONT_Y2);
   int exitHov = pointInRect(hmx, hmy, EXIT_X1, EXIT_Y1, EXIT_X2, EXIT_Y2);
 
   /* --- Lop mo (dim overlay) --- */
-  /* Ve mot so duong ngang ban trong suot de tao hieu ung toi */
   setcolor(BLACK);
   {
     int yy;
@@ -1316,6 +2028,7 @@ void drawPauseMenu(int hmx, int hmy) {
   /* --- Panel chinh --- */
   setfillstyle(SOLID_FILL, BLACK);
   bar(PANEL_X1, PANEL_Y1, PANEL_X2, PANEL_Y2);
+
   /* Vien doi */
   setcolor(LIGHTCYAN);
   rectangle(PANEL_X1, PANEL_Y1, PANEL_X2, PANEL_Y2);
@@ -1348,169 +2061,354 @@ void drawPauseMenu(int hmx, int hmy) {
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 1);
 }
 
+/* handlePauseMenuClick(): Xu ly click trong pause menu
+ * Tra ve: 1=Continue, 2=Exit, 0=khong click */
+int handlePauseMenuClick(int mx, int my) {
+  if (pointInRect(mx, my, CONT_X1, CONT_Y1, CONT_X2, CONT_Y2))
+    return 1;
+  if (pointInRect(mx, my, EXIT_X1, EXIT_Y1, EXIT_X2, EXIT_Y2))
+    return 2;
+  return 0;
+}
+
+/* drawGameOverScreen(): Ve man hinh game over voi cac nut */
+void drawGameOverScreen(int score, int level, int mx, int my) {
+  char buf[80];
+  int replayHov = pointInRect(mx, my, GAMEOVER_REPLAY_X1, GAMEOVER_REPLAY_Y1,
+                              GAMEOVER_REPLAY_X2, GAMEOVER_REPLAY_Y2);
+  int menuHov = pointInRect(mx, my, GAMEOVER_MENU_X1, GAMEOVER_MENU_Y1,
+                            GAMEOVER_MENU_X2, GAMEOVER_MENU_Y2);
+
+  cleardevice();
+  drawStars();
+
+  /* Khung chinh */
+  setcolor(RED);
+  rectangle(WIDTH / 2 - 280, HEIGHT / 2 - 140, WIDTH / 2 + 280,
+            HEIGHT / 2 + 190);
+  rectangle(WIDTH / 2 - 282, HEIGHT / 2 - 142, WIDTH / 2 + 282,
+            HEIGHT / 2 + 192);
+
+  /* Tieu de GAME OVER */
+  settextstyle(DEFAULT_FONT, HORIZ_DIR, 7);
+  outtextxy(WIDTH / 2 - 210, HEIGHT / 2 - 110, (char *)"GAME OVER");
+
+  /* Diem so */
+  setcolor(YELLOW);
+  settextstyle(DEFAULT_FONT, HORIZ_DIR, 3);
+  sprintf(buf, "Final Score: %d", score);
+  outtextxy(WIDTH / 2 - 130, HEIGHT / 2 - 10, buf);
+
+  /* Level dat duoc */
+  setcolor(LIGHTCYAN);
+  settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
+  sprintf(buf, "Level Reached: %d", level);
+  outtextxy(WIDTH / 2 - 100, HEIGHT / 2 + 20, buf);
+
+  /* --- Nut REPLAY --- */
+  setfillstyle(SOLID_FILL, replayHov ? GREEN : DARKGRAY);
+  bar(GAMEOVER_REPLAY_X1, GAMEOVER_REPLAY_Y1, GAMEOVER_REPLAY_X2,
+      GAMEOVER_REPLAY_Y2);
+  setcolor(replayHov ? YELLOW : WHITE);
+  rectangle(GAMEOVER_REPLAY_X1, GAMEOVER_REPLAY_Y1, GAMEOVER_REPLAY_X2,
+            GAMEOVER_REPLAY_Y2);
+  settextstyle(DEFAULT_FONT, HORIZ_DIR, 3);
+  outtextxy(WIDTH / 2 - 60, GAMEOVER_REPLAY_Y1 + 12, (char *)"REPLAY");
+
+  /* --- Nut EXIT TO MENU --- */
+  setfillstyle(SOLID_FILL, menuHov ? RED : DARKGRAY);
+  bar(GAMEOVER_MENU_X1, GAMEOVER_MENU_Y1, GAMEOVER_MENU_X2, GAMEOVER_MENU_Y2);
+  setcolor(menuHov ? YELLOW : LIGHTRED);
+  rectangle(GAMEOVER_MENU_X1, GAMEOVER_MENU_Y1, GAMEOVER_MENU_X2,
+            GAMEOVER_MENU_Y2);
+  settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
+  outtextxy(WIDTH / 2 - 95, GAMEOVER_MENU_Y1 + 8, (char *)"EXIT TO MENU");
+
+  /* Reset */
+  settextstyle(DEFAULT_FONT, HORIZ_DIR, 1);
+}
+
+/* handleGameOverClick(): Xu ly click trong game over screen
+ * Tra ve: 1=Replay, 2=Exit to Menu, 0=khong click */
+int handleGameOverClick(int mx, int my) {
+  if (pointInRect(mx, my, GAMEOVER_REPLAY_X1, GAMEOVER_REPLAY_Y1,
+                  GAMEOVER_REPLAY_X2, GAMEOVER_REPLAY_Y2))
+    return 1;
+  if (pointInRect(mx, my, GAMEOVER_MENU_X1, GAMEOVER_MENU_Y1, GAMEOVER_MENU_X2,
+                  GAMEOVER_MENU_Y2))
+    return 2;
+  return 0;
+}
+
+/* drawMenuButton(): Ve nut hamburger (3 gach ngang) goc trai tren.
+. */
+void drawMenuButton(int hovered) {
+  /* Nen nut */
+  setfillstyle(SOLID_FILL, hovered ? DARKGRAY : BLACK);
+  bar(MENU_BTN_X1, MENU_BTN_Y1, MENU_BTN_X2, MENU_BTN_Y2);
+  /* Vien */
+  setcolor(hovered ? WHITE : LIGHTGRAY);
+  rectangle(MENU_BTN_X1, MENU_BTN_Y1, MENU_BTN_X2, MENU_BTN_Y2);
+  /* 3 gach ngang (hamburger icon) */
+  int cx = (MENU_BTN_X1 + MENU_BTN_X2) / 2;
+  int cy = (MENU_BTN_Y1 + MENU_BTN_Y2) / 2;
+  setcolor(hovered ? YELLOW : WHITE);
+  line(cx - 12, cy - 7, cx + 12, cy - 7);
+  line(cx - 12, cy, cx + 12, cy);
+  line(cx - 12, cy + 7, cx + 12, cy + 7);
+}
+
 int main() {
 
   Ship ship;
   Bullet bullets[MAX_BULLETS];
   Asteroid asteroids[MAX_ASTEROIDS];
-  Item items[MAX_ITEMS];                // tinh the
-  Explosion explosions[MAX_EXPLOSIONS]; // hieu ung no
+  Item items[MAX_ITEMS];
+  Explosion explosions[MAX_EXPLOSIONS];
   SkillSystem skills;
 
-  int score = 0, hp = INITIAL_HP, level = 1, gameOver = 0;
+  int score = 0, hp = INITIAL_HP, level = 1;
   unsigned long lastShot = 0, lastHit = 0;
-  int mx = WIDTH / 2, my = HEIGHT / 2; // Vi tri chuot
+  int mx = WIDTH / 2, my = HEIGHT / 2;
   int frameCount = 0, levelBanner = 0, page = 0;
-  int menuOpen = 0;
-  int mxClick, myClick; /* Toa do click chuot */
+  int mxClick, myClick;
+
+  GameState gameState = STATE_MAIN_MENU; /* Bat dau tu Main Menu */
+  int running = 1;                       /* Vong lap chinh cua chuong trinh */
 
   int gd = DETECT, gm;
   initwindow(WIDTH, HEIGHT, "Asteroid Blaster v3.0");
   setbkcolor(BLACK);
   cleardevice();
 
-  initGame(&ship, asteroids, bullets, items, explosions, &skills, &score, &hp,
-           &level);
+  /* Khoi tao sao nen 1 lan */
+  if (!starsReady)
+    initStars();
 
-  /*
-   *  BUOC 1: INPUT  - doc ban phim, chuot, ky nang
-   *  BUOC 2: UPDATE - di chuyen tat ca doi tuong
-   *  BUOC 3: COLLISION - xu ly va cham
-   *  BUOC 4: SKILL DAMAGE - ap dung dame skill
-   *  BUOC 5: LEVEL CHECK - kiem tra len level
-   *  BUOC 6: RENDER - ve tat ca len man hinh (double buffer)
-   *  BUOC 7: DELAY  - nghi ~16ms de giu toc do ~60fps
-   */
-  while (!gameOver) {
-    /* GetTickCount(): lay so ms ke tu khoi dong may - dung tinh cooldown */
+  while (running) {
     unsigned long now = GetTickCount();
-    frameCount++; /* Tang dem frame moi luot vong lap */
+    handleMouse(&mx, &my);
 
-    if (GetAsyncKeyState(VK_ESCAPE) & 0x8000) {
-      if (menuOpen) {
-        menuOpen = 0;
-        delay(200);
-      } else {
-        menuOpen = 1; /* Mo menu pause */
-        delay(200);
-      }
-    }
-
-    //  ismouseclick(WM_LBUTTONDOWN): kiem tra co click chuot trai moi khong.
-    //  getmouseclick(loai, &x, &y): lay toa do click va xoa khoi hang doi.
+    /* Xu ly click chuot */
     if (ismouseclick(WM_LBUTTONDOWN)) {
       getmouseclick(WM_LBUTTONDOWN, mxClick, myClick);
 
-      if (menuOpen) {
-        /* Menu dang mo: kiem tra click CONTINUE / EXIT */
-        if (pointInRect(mxClick, myClick, CONT_X1, CONT_Y1, CONT_X2, CONT_Y2)) {
-          menuOpen = 0; /* Tiep tuc choi */
-        } else if (pointInRect(mxClick, myClick, EXIT_X1, EXIT_Y1, EXIT_X2,
-                               EXIT_Y2)) {
-          gameOver = 1; /* Thoat game */
+      switch (gameState) {
+      case STATE_MAIN_MENU: {
+        int choice = handleMainMenuClick(mxClick, myClick);
+        if (choice == 1) {
+          /* START GAME: khoi tao game va chuyen sang PLAYING */
+          initGame(&ship, asteroids, bullets, items, explosions, &skills,
+                   &score, &hp, &level);
+          gameState = STATE_PLAYING;
+          frameCount = 0;
+          levelBanner = 0;
+        } else if (choice == 2) {
+          /* GUIDE: chuyen sang man hinh huong dan */
+          gameState = STATE_GUIDE;
+        } else if (choice == 3) {
+          /* EXIT: thoat chuong trinh */
+          running = 0;
         }
-      } else {
-        /* Game dang chay: kiem tra click nut MENU */
+        break;
+      }
+
+      case STATE_GUIDE: {
+        int back = handleGuideClick(mxClick, myClick);
+        if (back == 1) {
+          /* BACK: quay lai Main Menu */
+          gameState = STATE_MAIN_MENU;
+        }
+        break;
+      }
+
+      case STATE_PAUSED: {
+        int choice = handlePauseMenuClick(mxClick, myClick);
+        if (choice == 1) {
+          /* CONTINUE: tiep tuc choi */
+          gameState = STATE_PLAYING;
+        } else if (choice == 2) {
+          /* EXIT: quay lai Main Menu */
+          gameState = STATE_MAIN_MENU;
+        }
+        break;
+      }
+
+      case STATE_GAME_OVER: {
+        int choice = handleGameOverClick(mxClick, myClick);
+        if (choice == 1) {
+          /* REPLAY: khoi tao lai game va choi lai */
+          initGame(&ship, asteroids, bullets, items, explosions, &skills,
+                   &score, &hp, &level);
+          gameState = STATE_PLAYING;
+          frameCount = 0;
+          levelBanner = 0;
+        } else if (choice == 2) {
+          /* EXIT TO MENU: quay lai Main Menu */
+          gameState = STATE_MAIN_MENU;
+        }
+        break;
+      }
+
+      case STATE_PLAYING:
+        /* Kiem tra click nut MENU trong game */
         if (pointInRect(mxClick, myClick, MENU_BTN_X1, MENU_BTN_Y1, MENU_BTN_X2,
                         MENU_BTN_Y2)) {
-          menuOpen = 1; /* Mo menu */
+          gameState = STATE_PAUSED;
         }
+        break;
       }
     }
-    handleMouse(&mx, &my);
 
-    if (!menuOpen) {
-      /* BUOC 1: INPUT - doc phim va ky nang */
-      handleKeyboardMove(&ship);                      /* Di chuyen ship */
-      handleSkillsInput(&skills, &ship, mx, my, now); /* Kiem tra phim 1/2/3 */
+    /* Xu ly phim ESC trong game de pause */
+    if (gameState == STATE_PLAYING) {
+      if (GetAsyncKeyState(VK_ESCAPE) & 0x8000) {
+        gameState = STATE_PAUSED;
+        delay(200);
+      }
+    } else if (gameState == STATE_PAUSED) {
+      if (GetAsyncKeyState(VK_ESCAPE) & 0x8000) {
+        gameState = STATE_PLAYING;
+        delay(200);
+      }
+    }
 
-      /* BUOC 2: UPDATE - di chuyen va cap nhat trang thai doi tuong */
-      updateShip(&ship); /* Giu ship trong man hinh */
-      tryAutoShoot(&ship, bullets, MAX_BULLETS, mx, my,
-                   &lastShot);             /* Tu dong ban */
-      updateBullets(bullets, MAX_BULLETS); /* Di chuyen dan */
+    /* Xu ly logic va render theo trang thai */
+    switch (gameState) {
+    case STATE_MAIN_MENU:
+      setactivepage(0);
+      setvisualpage(0);
+      drawMainMenu(mx, my);
+      delay(16);
+      break;
 
-      /* Neu Time Slow dang kich hoat: asteroid di chuyen cham hon */
+    case STATE_GUIDE:
+      setactivepage(0);
+      setvisualpage(0);
+      drawGuideScreen(mx, my);
+      delay(16);
+      break;
+
+    case STATE_PLAYING: {
+      frameCount++;
+
+      /* BUOC 1: INPUT */
+      handleKeyboardMove(&ship);
+      handleSkillsInput(&skills, &ship, mx, my, now);
+
+      /* BUOC 2: UPDATE */
+      updateShip(&ship);
+      tryAutoShoot(&ship, bullets, MAX_BULLETS, mx, my, &lastShot);
+      updateBullets(bullets, MAX_BULLETS);
+
       float spdM = skills.slowActive ? skills.slowFactor : 1.0f;
       updateAsteroids(asteroids, MAX_ASTEROIDS, level, spdM);
 
-      updateItems(items, MAX_ITEMS);                /* Roi tinh the xuong */
-      updateExplosions(explosions, MAX_EXPLOSIONS); /* Dem frame no */
-      updateSkillEffects(&skills, now);             /* Kiem tra het han skill */
+      updateItems(items, MAX_ITEMS);
+      updateExplosions(explosions, MAX_EXPLOSIONS);
+      updateSkillEffects(&skills, now);
 
-      /* BUOC 3: COLLISION - xu ly va cham giua cac doi tuong */
+      /* BUOC 3: COLLISION */
       handleBulletAsteroidCollisions(bullets, MAX_BULLETS, asteroids,
                                      MAX_ASTEROIDS, &score, level, items,
                                      explosions);
       handleShipAsteroidCollision(&ship, asteroids, MAX_ASTEROIDS, &hp,
                                   &lastHit, explosions, level);
-      handleItemPickup(&ship, items, MAX_ITEMS); /* Nhat tinh the */
+      handleItemPickup(&ship, items, MAX_ITEMS);
 
-      /* BUOC 4: SKILL DAMAGE - ap dung sat thuong skill (1 lan/kich hoat) */
+      /* BUOC 4: SKILL DAMAGE */
       applySkillDamage(&skills, asteroids, MAX_ASTEROIDS, &score, level, items,
                        explosions);
 
-      /* BUOC 5: LEVEL CHECK - len level khi dat du diem */
+      /* BUOC 5: LEVEL CHECK */
       if (checkLevelUp(score, level)) {
         level++;
-        updateDifficultyByLevel(level, &gCfg); /* Tang do kho theo level moi */
-        levelBanner = LEVEL_BANNER_FR;         /* Hien bang Level Up ~1.5s */
+        updateDifficultyByLevel(level, &gCfg);
+        levelBanner = LEVEL_BANNER_FR;
 
         {
           int i;
           for (i = 0; i < MAX_ASTEROIDS; i++) {
             initAsteroid(&asteroids[i], level, &gCfg);
-            asteroids[i].y = (float)(-(rand() % 300) - 200); /* Tren man hinh */
+            asteroids[i].y = (float)(-(rand() % 300) - 200);
           }
         }
       }
-      if (hp <= 0)
-        gameOver = 1; /* HP ve 0: ket thuc game */
-    } /* end if (!menuOpen) */
 
-    // BUOC 6: RENDER - ve tat ca len trang an, roi hien len man hinh
+      if (hp <= 0) {
+        gameState = STATE_GAME_OVER; /* Chuyen sang man hinh Game Over */
+      }
 
-    setactivepage(page); /* Chon trang se ve vao (an) */
-    cleardevice();       /* Xoa trang nay ve mau nen (den) */
+      /* BUOC 6: RENDER */
+      setactivepage(page);
+      cleardevice();
 
-    drawStars();                                /* Ve nen sao truoc nhat */
-    drawAsteroids(asteroids, MAX_ASTEROIDS);    /* Ve asteroid + HP bar */
-    drawItems(items, MAX_ITEMS);                /* Ve tinh the */
-    drawBullets(bullets, MAX_BULLETS);          /* Ve dan */
-    drawExplosions(explosions, MAX_EXPLOSIONS); /* Ve hieu ung no */
-    drawSkillEffects(&skills);                  /* Ve hieu ung 3 skill */
-    drawShip(ship, mx, my, frameCount);         /* Ve phi thuyen + crosshair */
-    drawHUD(score, hp, level, ship, &skills);   /* Ve HUD */
-    if (levelBanner > 0) {
-      drawLevelBanner(level);
-      levelBanner--;
-    } /* Banner Level Up */
+      drawBackground(level);
+      drawAsteroids(asteroids, MAX_ASTEROIDS);
+      drawItems(items, MAX_ITEMS);
+      drawBullets(bullets, MAX_BULLETS);
+      drawExplosions(explosions, MAX_EXPLOSIONS);
+      drawSkillEffects(&skills);
+      drawShip(ship, mx, my, frameCount);
+      drawHUD(score, hp, level, ship, &skills);
 
-    {
-      int btnHov = pointInRect(mx, my, MENU_BTN_X1, MENU_BTN_Y1, MENU_BTN_X2,
-                               MENU_BTN_Y2);
-      drawMenuButton(btnHov);
+      if (levelBanner > 0) {
+        drawLevelBanner(level);
+        levelBanner--;
+      }
+
+      {
+        int btnHov = pointInRect(mx, my, MENU_BTN_X1, MENU_BTN_Y1, MENU_BTN_X2,
+                                 MENU_BTN_Y2);
+        drawMenuButton(btnHov);
+      }
+
+      setvisualpage(page);
+      page = 1 - page;
+
+      /* BUOC 7: DELAY */
+      delay(16);
+      break;
     }
 
-    /* Ve overlay pause menu (len tren tat ca) khi dang tam dung */
-    if (menuOpen) {
+    case STATE_PAUSED: {
+      setactivepage(page);
+      cleardevice();
+
+      /* Ve lai game phia sau */
+      drawBackground(level);
+      drawAsteroids(asteroids, MAX_ASTEROIDS);
+      drawItems(items, MAX_ITEMS);
+      drawBullets(bullets, MAX_BULLETS);
+      drawExplosions(explosions, MAX_EXPLOSIONS);
+      drawSkillEffects(&skills);
+      drawShip(ship, mx, my, frameCount);
+      drawHUD(score, hp, level, ship, &skills);
+
+      {
+        int btnHov = pointInRect(mx, my, MENU_BTN_X1, MENU_BTN_Y1, MENU_BTN_X2,
+                                 MENU_BTN_Y2);
+        drawMenuButton(btnHov);
+      }
+
+      /* Ve menu pause len tren */
       drawPauseMenu(mx, my);
+
+      setvisualpage(page);
+      page = 1 - page;
+      delay(16);
+      break;
     }
 
-    setvisualpage(page); /* Hien trang vua ve len man hinh */
-    page = 1 - page;     /* Doi trang: 0->1->0->1... */
-
-    // BUOC 7: DELAY - nghi 16ms ~ toc do 60fps
-
-    delay(16);
+    case STATE_GAME_OVER:
+      setactivepage(0);
+      setvisualpage(0);
+      drawGameOverScreen(score, level, mx, my);
+      delay(16);
+      break;
+    }
   }
 
-  /* GAME OVER: ve man hinh ket thuc, doi nguoi choi bam phim, don dep */
-  setactivepage(0);
-  setvisualpage(0);           /* Ve vao trang 0 va hien ngay */
-  drawGameOver(score, level); /* Hien thi bang Game Over */
-
-  getch();
   closegraph();
   return 0;
 }
