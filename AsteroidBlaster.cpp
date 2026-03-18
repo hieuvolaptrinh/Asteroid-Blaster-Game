@@ -966,7 +966,7 @@ void drawBullets(Bullet b[], int n) {
 
 void drawAsteroid(Asteroid a) {
   int nV = 10, i; /* 10 dinh polygon */
-  int poly[20];   /* Mang toa do: [x0,y0, x1,y1, ..., x9,y9] */
+  int poly[22];   /* Mang toa do: [x0,y0, ..., x9,y9, x0,y0] (can them 1 cap cho drawpoly) */
   unsigned int s;
   int cFill, cLine;
 
@@ -985,6 +985,9 @@ void drawAsteroid(Asteroid a) {
     poly[i * 2 + 1] =
         (int)(a.y + sinf(va) * a.radius * rv); /* Toa do Y dinh i */
   }
+  /* Dong polygon: dinh cuoi = dinh dau (can cho drawpoly) */
+  poly[nV * 2] = poly[0];
+  poly[nV * 2 + 1] = poly[1];
 
   /* Chon mau theo kich thuoc asteroid */
   if (a.radius <= 22) {
@@ -1000,8 +1003,12 @@ void drawAsteroid(Asteroid a) {
     cLine = YELLOW;
   } /* Lon: nau */
 
+  /* Ve vien polygon truoc */
+  setcolor(cLine);
+  drawpoly(nV + 1, poly); /* drawpoly can n+1 diem (dinh cuoi = dinh dau) */
+  /* To mau bang floodfill tai tam asteroid */
   setfillstyle(SOLID_FILL, cFill);
-  fillpoly(nV, poly); /* fillpoly(n, arr): ve va to mau da giac n dinh */
+  floodfill((int)a.x, (int)a.y, cLine); /* floodfill tu tam, dung tai vien cLine */
   setcolor(cLine);
   /* Ve vien polygon bang cach noi cac dinh lien tiep */
   for (i = 0; i < nV; i++) {
@@ -1454,16 +1461,20 @@ int main() {
     /* Xu ly logic va render theo trang thai */
     switch (gameState) {
     case STATE_MAIN_MENU:
-      setactivepage(0);
-      setvisualpage(0);
+      setactivepage(page);
+      cleardevice();
       drawMainMenu(mx, my);
+      setvisualpage(page);
+      page = 1 - page;
       delay(16);
       break;
 
     case STATE_GUIDE:
-      setactivepage(0);
-      setvisualpage(0);
+      setactivepage(page);
+      cleardevice();
       drawGuideScreen(mx, my);
+      setvisualpage(page);
+      page = 1 - page;
       delay(16);
       break;
 
@@ -1579,9 +1590,11 @@ int main() {
     }
 
     case STATE_GAME_OVER:
-      setactivepage(0);
-      setvisualpage(0);
+      setactivepage(page);
+      cleardevice();
       drawGameOverScreen(score, level, mx, my);
+      setvisualpage(page);
+      page = 1 - page;
       delay(16);
       break;
     }
