@@ -14,37 +14,38 @@ void drawGameOverScreen(int score, int level, int mx, int my) {
   drawStars();
 
   /* Khung chinh */
-  setcolor(RED);
+  setcolor(COL_GAMEOVER_BORDER);
   rectangle(WIDTH / 2 - 280, HEIGHT / 2 - 140, WIDTH / 2 + 280,
             HEIGHT / 2 + 190);
+  setcolor(COL_GAMEOVER_TITLE);
   rectangle(WIDTH / 2 - 282, HEIGHT / 2 - 142, WIDTH / 2 + 282,
             HEIGHT / 2 + 192);
 
   /* Tieu de KET THUC (can giua) */
-  setcolor(RED);
+  setcolor(COL_GAMEOVER_TITLE);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 7);
   tw = textwidth((char *)"KET THUC");
   outtextxy(WIDTH / 2 - tw / 2, HEIGHT / 2 - 120, (char *)"KET THUC");
 
   /* Diem so (can giua) */
-  setcolor(YELLOW);
+  setcolor(COL_TEXT_TITLE);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 3);
   sprintf(buf, "Diem: %d", score);
   tw = textwidth(buf);
   outtextxy(WIDTH / 2 - tw / 2, HEIGHT / 2 - 10, buf);
 
   /* Level dat duoc (can giua) */
-  setcolor(LIGHTCYAN);
+  setcolor(COL_TEXT_SUBTITLE);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
   sprintf(buf, "Cap do dat duoc: %d", level);
   tw = textwidth(buf);
   outtextxy(WIDTH / 2 - tw / 2, HEIGHT / 2 + 20, buf);
 
   /* --- Nut CHOI LAI (can giua) --- */
-  setfillstyle(SOLID_FILL, replayHov ? GREEN : DARKGRAY);
+  setfillstyle(SOLID_FILL, replayHov ? COL_BTN_HOVER_GREEN : COL_BTN_NORMAL);
   bar(GAMEOVER_REPLAY_X1, GAMEOVER_REPLAY_Y1, GAMEOVER_REPLAY_X2,
       GAMEOVER_REPLAY_Y2);
-  setcolor(replayHov ? YELLOW : WHITE);
+  setcolor(replayHov ? COL_BTN_TEXT_HOV : COL_BTN_TEXT);
   rectangle(GAMEOVER_REPLAY_X1, GAMEOVER_REPLAY_Y1, GAMEOVER_REPLAY_X2,
             GAMEOVER_REPLAY_Y2);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 3);
@@ -54,9 +55,9 @@ void drawGameOverScreen(int score, int level, int mx, int my) {
   outtextxy(WIDTH / 2 - tw / 2, btnCY - th / 2, (char *)"CHOI LAI");
 
   /* --- Nut VE MENU (can giua) --- */
-  setfillstyle(SOLID_FILL, menuHov ? RED : DARKGRAY);
+  setfillstyle(SOLID_FILL, menuHov ? COL_BTN_HOVER_RED : COL_BTN_NORMAL);
   bar(GAMEOVER_MENU_X1, GAMEOVER_MENU_Y1, GAMEOVER_MENU_X2, GAMEOVER_MENU_Y2);
-  setcolor(menuHov ? YELLOW : LIGHTRED);
+  setcolor(menuHov ? COL_BTN_TEXT_HOV : COL_TEXT_DANGER);
   rectangle(GAMEOVER_MENU_X1, GAMEOVER_MENU_Y1, GAMEOVER_MENU_X2,
             GAMEOVER_MENU_Y2);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);

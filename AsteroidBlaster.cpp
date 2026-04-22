@@ -48,7 +48,7 @@ int main()
 
   int gd = DETECT, gm;
   initwindow(WIDTH, HEIGHT, "Asteroid Blaster v3.0");
-  setbkcolor(BLACK);
+  setbkcolor(COL_SPACE_BG);
   cleardevice();
 
   /* Khoi tao double buffer: xoa sach ca 2 trang */

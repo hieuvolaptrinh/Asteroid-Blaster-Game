@@ -12,17 +12,17 @@ void drawGuideScreen(int mx, int my)
   drawStars();
 
   /* Tieu de (can giua) */
-  setcolor(YELLOW);
+  setcolor(COL_TEXT_TITLE);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 4);
   tw = textwidth((char *)"HUONG DAN CHOI");
   outtextxy(WIDTH / 2 - tw / 2, 30, (char *)"HUONG DAN CHOI");
 
   /* --- DIEU KHIEN --- */
-  setcolor(LIGHTCYAN);
+  setcolor(COL_TEXT_SUBTITLE);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 3);
   outtextxy(100, 90, (char *)"DIEU KHIEN:");
 
-  setcolor(WHITE);
+  setcolor(COL_TEXT_BODY);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
   outtextxy(120, 125, (char *)"WASD / Phim mui ten  -  Di chuyen phi thuyen");
   outtextxy(120, 150, (char *)"Chuot                -  Ngam huong ban");
@@ -30,26 +30,26 @@ void drawGuideScreen(int mx, int my)
   outtextxy(120, 200, (char *)"ESC                  -  Tam dung game");
 
   /* --- KY NANG --- */
-  setcolor(LIGHTCYAN);
+  setcolor(COL_TEXT_SUBTITLE);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 3);
   outtextxy(100, 240, (char *)"KY NANG:");
 
-  setcolor(YELLOW);
+  setcolor(COL_BOMB_HOT);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
   outtextxy(120, 275, (char *)"[1] BOM NO - No vung tron quanh phi thuyen (CD: 8 giay)");
 
-  setcolor(LIGHTBLUE);
+  setcolor(COL_SLOW_TEXT);
   outtextxy(120, 300, (char *)"[2] LAM CHAM - Lam cham thien thach trong 4 giay (CD: 12 giay)");
 
-  setcolor(LIGHTCYAN);
+  setcolor(COL_BEAM_OUTER);
   outtextxy(120, 325, (char *)"[3] TIA XUYEN - Ban tia laser xuyen qua (CD: 10 giay)");
 
   /* --- MUC TIEU --- */
-  setcolor(LIGHTCYAN);
+  setcolor(COL_TEXT_SUBTITLE);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 3);
   outtextxy(100, 360, (char *)"MUC TIEU:");
 
-  setcolor(WHITE);
+  setcolor(COL_TEXT_BODY);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
   outtextxy(120, 395, (char *)"- Pha huy thien thach de ghi diem");
   outtextxy(120, 420, (char *)"- Thu thap tinh the nang luong de nang cap");
@@ -57,18 +57,18 @@ void drawGuideScreen(int mx, int my)
   outtextxy(120, 470, (char *)"- Song sot cang lau cang tot!");
 
   /* --- TINH THE NANG CAP --- */
-  setcolor(LIGHTMAGENTA);
+  setcolor(COL_CRYSTAL_B);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 3);
   outtextxy(100, 505, (char *)"TINH THE NANG CAP:");
 
-  setcolor(WHITE);
+  setcolor(COL_TEXT_BODY);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
   outtextxy(120, 540, (char *)"Xoay vong: So dan -> Sat thuong -> Toc do ban");
 
   /* --- Nut QUAY LAI (can giua) --- */
-  setfillstyle(SOLID_FILL, backHov ? CYAN : DARKGRAY);
+  setfillstyle(SOLID_FILL, backHov ? COL_BTN_HOVER_CYAN : COL_BTN_NORMAL);
   bar(GUIDE_BACK_X1, GUIDE_BACK_Y1, GUIDE_BACK_X2, GUIDE_BACK_Y2);
-  setcolor(backHov ? YELLOW : WHITE);
+  setcolor(backHov ? COL_BTN_TEXT_HOV : COL_BTN_TEXT);
   rectangle(GUIDE_BACK_X1, GUIDE_BACK_Y1, GUIDE_BACK_X2, GUIDE_BACK_Y2);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
   tw = textwidth((char *)"QUAY LAI");

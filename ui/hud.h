@@ -12,45 +12,66 @@ void drawHUD(int score, int hp, int level, Ship ship, SkillSystem *sk)
   unsigned long now = GetTickCount();
 
   /* HP bar */
-  setcolor(WHITE);
+  setcolor(COL_TEXT_BODY);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 1);
   outtextxy(15, 12, (char *)"HP:");
+
+  /* Nen thanh HP */
+  setfillstyle(SOLID_FILL, COL_HP_BG);
+  bar(50, 10, 260, 28);
+
+  /* Vien thanh HP */
+  setcolor(COL_HP_BORDER);
   rectangle(50, 10, 260, 28);
+
   int bw = (int)(210.0f * hp / INITIAL_HP);
   if (bw < 0)
     bw = 0;
+
+  int hpColor;
   if (hp > 60)
-    setfillstyle(SOLID_FILL, GREEN);
+    hpColor = COL_HP_HIGH;
   else if (hp > 30)
-    setfillstyle(SOLID_FILL, YELLOW);
+    hpColor = COL_HP_MED;
   else
-    setfillstyle(SOLID_FILL, RED);
+    hpColor = COL_HP_LOW;
+
+  setfillstyle(SOLID_FILL, hpColor);
   bar(51, 11, 51 + bw, 27);
+
+  /* Highlight tren thanh HP */
+  if (bw > 4)
+  {
+    setcolor(colorLerp(hpColor, COL_TEXT_WHITE, 0.25f));
+    line(52, 11, 50 + bw, 11);
+  }
+
+  /* So HP */
   sprintf(buf, "%d/%d", hp, INITIAL_HP);
-  setcolor(WHITE);
+  setcolor(COL_TEXT_BODY);
   outtextxy(268, 12, buf);
 
   /* Level */
-  setcolor(LIGHTCYAN);
+  setcolor(COL_TEXT_SUBTITLE);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
   sprintf(buf, "LEVEL %d", level);
   outtextxy(WIDTH / 2 - 55, 8, buf);
 
   /* Score */
-  setcolor(YELLOW);
+  setcolor(COL_TEXT_TITLE);
   sprintf(buf, "SCORE: %d", score);
   outtextxy(WIDTH - 240, 8, buf);
 
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 1);
 
   /* Weapon stats */
-  setcolor(LIGHTGREEN);
+  setcolor(COL_TEXT_SUCCESS);
   sprintf(buf, "DMG:%d  PELLETS:%d  CD:%dms", ship.bulletDamage,
           ship.pelletsPerShot, ship.shootCooldown);
   outtextxy(15, HEIGHT - 50, buf);
 
   /* Score de len level */
-  setcolor(DARKGRAY);
+  setcolor(COL_TEXT_DIM);
   sprintf(buf, "Next Lv: %d", level * LEVEL_UP_SCORE);
   outtextxy(15, HEIGHT - 30, buf);
 
@@ -64,7 +85,7 @@ void drawHUD(int score, int hp, int level, Ship ship, SkillSystem *sk)
     cd = 0;
     if (now - sk->bombLast < sk->bombCD)
       cd = (float)(sk->bombCD - (now - sk->bombLast)) / 1000.0f;
-    color = (cd <= 0) ? GREEN : RED;
+    color = (cd <= 0) ? COL_TEXT_SUCCESS : COL_TEXT_DANGER;
     setcolor(color);
     if (cd <= 0)
       sprintf(buf, "[1] BOMB: Ready");
@@ -78,17 +99,17 @@ void drawHUD(int score, int hp, int level, Ship ship, SkillSystem *sk)
       cd = (float)(sk->slowCD - (now - sk->slowLast)) / 1000.0f;
     if (sk->slowActive)
     {
-      color = YELLOW;
+      color = COL_TEXT_TITLE;
       sprintf(buf, "[2] SLOW: Active");
     }
     else if (cd <= 0)
     {
-      color = GREEN;
+      color = COL_TEXT_SUCCESS;
       sprintf(buf, "[2] SLOW: Ready");
     }
     else
     {
-      color = RED;
+      color = COL_TEXT_DANGER;
       sprintf(buf, "[2] SLOW: %.1fs", cd);
     }
     setcolor(color);
@@ -98,7 +119,7 @@ void drawHUD(int score, int hp, int level, Ship ship, SkillSystem *sk)
     cd = 0;
     if (now - sk->beamLast < sk->beamCD)
       cd = (float)(sk->beamCD - (now - sk->beamLast)) / 1000.0f;
-    color = (cd <= 0) ? GREEN : RED;
+    color = (cd <= 0) ? COL_TEXT_SUCCESS : COL_TEXT_DANGER;
     setcolor(color);
     if (cd <= 0)
       sprintf(buf, "[3] BEAM: Ready");
@@ -113,17 +134,25 @@ void drawLevelBanner(int level)
 {
   char buf[32];
   int tw, th;
-  setfillstyle(SOLID_FILL, BLUE);
+
+  /* Nen banner */
+  setfillstyle(SOLID_FILL, COL_BANNER_BG);
   bar(WIDTH / 2 - 200, HEIGHT / 2 - 60, WIDTH / 2 + 200, HEIGHT / 2 + 40);
-  setcolor(LIGHTCYAN);
+
+  /* Vien doi */
+  setcolor(COL_BANNER_BORDER);
   rectangle(WIDTH / 2 - 200, HEIGHT / 2 - 60, WIDTH / 2 + 200, HEIGHT / 2 + 40);
   rectangle(WIDTH / 2 - 202, HEIGHT / 2 - 62, WIDTH / 2 + 202, HEIGHT / 2 + 42);
-  setcolor(YELLOW);
+
+  /* Tieu de LEVEL UP! */
+  setcolor(COL_TEXT_TITLE);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 4);
   tw = textwidth((char *)"LEVEL UP!");
   th = textHeightCompat("LEVEL UP!");
   outtextxy(WIDTH / 2 - tw / 2, HEIGHT / 2 - 50 - th / 2, (char *)"LEVEL UP!");
-  setcolor(WHITE);
+
+  /* So level */
+  setcolor(COL_TEXT_WHITE);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
   sprintf(buf, "Level %d", level);
   tw = textwidth(buf);
@@ -134,13 +163,13 @@ void drawLevelBanner(int level)
 /* drawMenuButton(): Ve nut hamburger (3 gach ngang) goc trai tren. */
 void drawMenuButton(int hovered)
 {
-  setfillstyle(SOLID_FILL, hovered ? DARKGRAY : BLACK);
+  setfillstyle(SOLID_FILL, hovered ? COL_MENU_BTN_HOVER : COL_MENU_BTN_BG);
   bar(MENU_BTN_X1, MENU_BTN_Y1, MENU_BTN_X2, MENU_BTN_Y2);
-  setcolor(hovered ? WHITE : LIGHTGRAY);
+  setcolor(hovered ? COL_TEXT_WHITE : COL_STAR_MED);
   rectangle(MENU_BTN_X1, MENU_BTN_Y1, MENU_BTN_X2, MENU_BTN_Y2);
   int cx = (MENU_BTN_X1 + MENU_BTN_X2) / 2;
   int cy = (MENU_BTN_Y1 + MENU_BTN_Y2) / 2;
-  setcolor(hovered ? YELLOW : WHITE);
+  setcolor(hovered ? COL_MENU_BTN_LINE_H : COL_MENU_BTN_LINE);
   line(cx - 12, cy - 7, cx + 12, cy - 7);
   line(cx - 12, cy, cx + 12, cy);
   line(cx - 12, cy + 7, cx + 12, cy + 7);

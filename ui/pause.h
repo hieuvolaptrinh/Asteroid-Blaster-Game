@@ -9,7 +9,7 @@ void drawPauseMenu(int hmx, int hmy)
   int exitHov = pointInRect(hmx, hmy, EXIT_X1, EXIT_Y1, EXIT_X2, EXIT_Y2);
 
   /* --- Lop mo (dim overlay) --- */
-  setcolor(BLACK);
+  setcolor(COL_OVERLAY_DIM);
   {
     int yy;
     for (yy = 0; yy < HEIGHT; yy += 2)
@@ -17,39 +17,40 @@ void drawPauseMenu(int hmx, int hmy)
   }
 
   /* --- Panel chinh --- */
-  setfillstyle(SOLID_FILL, BLACK);
+  setfillstyle(SOLID_FILL, COL_PANEL_BG);
   bar(PANEL_X1, PANEL_Y1, PANEL_X2, PANEL_Y2);
 
   /* Vien doi */
-  setcolor(LIGHTCYAN);
+  setcolor(COL_PANEL_BORDER);
   rectangle(PANEL_X1, PANEL_Y1, PANEL_X2, PANEL_Y2);
+  setcolor(COL_PANEL_BORDER2);
   rectangle(PANEL_X1 - 2, PANEL_Y1 - 2, PANEL_X2 + 2, PANEL_Y2 + 2);
 
   /* Tieu de (can giua) */
-  setcolor(YELLOW);
+  setcolor(COL_TEXT_TITLE);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 3);
   tw = textwidth((char *)"TAM DUNG");
   outtextxy(WIDTH / 2 - tw / 2, PANEL_Y1 + 18, (char *)"TAM DUNG");
 
   /* --- Nut TIEP TUC (can giua) --- */
-  setfillstyle(SOLID_FILL, contHov ? BLUE : DARKGRAY);
+  setfillstyle(SOLID_FILL, contHov ? COL_BTN_HOVER_BLUE : COL_BTN_NORMAL);
   bar(CONT_X1, CONT_Y1, CONT_X2, CONT_Y2);
-  setcolor(contHov ? WHITE : LIGHTCYAN);
+  setcolor(contHov ? COL_BTN_TEXT : COL_TEXT_SUBTITLE);
   rectangle(CONT_X1, CONT_Y1, CONT_X2, CONT_Y2);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
-  setcolor(contHov ? YELLOW : WHITE);
+  setcolor(contHov ? COL_BTN_TEXT_HOV : COL_BTN_TEXT);
   tw = textwidth((char *)"TIEP TUC");
   th = textHeightCompat("TIEP TUC");
   btnCY = (CONT_Y1 + CONT_Y2) / 2;
   outtextxy(WIDTH / 2 - tw / 2, btnCY - th / 2, (char *)"TIEP TUC");
 
   /* --- Nut THOAT (can giua) --- */
-  setfillstyle(SOLID_FILL, exitHov ? RED : DARKGRAY);
+  setfillstyle(SOLID_FILL, exitHov ? COL_BTN_HOVER_RED : COL_BTN_NORMAL);
   bar(EXIT_X1, EXIT_Y1, EXIT_X2, EXIT_Y2);
-  setcolor(exitHov ? WHITE : LIGHTRED);
+  setcolor(exitHov ? COL_BTN_TEXT : COL_TEXT_DANGER);
   rectangle(EXIT_X1, EXIT_Y1, EXIT_X2, EXIT_Y2);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
-  setcolor(exitHov ? YELLOW : WHITE);
+  setcolor(exitHov ? COL_BTN_TEXT_HOV : COL_BTN_TEXT);
   tw = textwidth((char *)"THOAT");
   th = textHeightCompat("THOAT");
   btnCY = (EXIT_Y1 + EXIT_Y2) / 2;

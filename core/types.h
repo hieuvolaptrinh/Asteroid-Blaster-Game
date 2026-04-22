@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <windows.h>
+#include "color.h"        /* He thong mau RGB thong nhat */
 
 /*
  * MinGW libbgi co the export textheight voi C++ mangling,
