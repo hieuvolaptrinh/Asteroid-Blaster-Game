@@ -2,7 +2,8 @@
 #define MENU_H
 
 /* drawMenuBackground(): Ve background dep cho menu voi hanh tinh, phi thuyen, hieu ung */
-void drawMenuBackground(void) {
+void drawMenuBackground(void)
+{
   int i;
   drawStars();
 
@@ -52,7 +53,8 @@ void drawMenuBackground(void) {
   }
 
   /* --- Sao bang bay cheo --- */
-  for (i = 0; i < 4; i++) {
+  for (i = 0; i < 4; i++)
+  {
     int sx = 100 + i * 280;
     int sy = 50 + i * 70;
     setcolor(WHITE);
@@ -64,13 +66,17 @@ void drawMenuBackground(void) {
   /* --- Tinh van nho (cum sao mau) o giua ben trai --- */
   {
     unsigned int seed = 54321u;
-    for (i = 0; i < 80; i++) {
+    for (i = 0; i < 80; i++)
+    {
       seed = seedRand(seed, i);
       int nx = 50 + (seed % 200);
       int ny = HEIGHT / 2 - 50 + ((seed / 7) % 150);
-      int c = (i % 4 == 0) ? MAGENTA : (i % 4 == 1) ? LIGHTCYAN : (i % 4 == 2) ? CYAN : LIGHTMAGENTA;
+      int c = (i % 4 == 0) ? MAGENTA : (i % 4 == 1) ? LIGHTCYAN
+                                   : (i % 4 == 2)   ? CYAN
+                                                    : LIGHTMAGENTA;
       putpixel(nx, ny, c);
-      if (i % 5 == 0) {
+      if (i % 5 == 0)
+      {
         putpixel(nx + 1, ny, c);
         putpixel(nx, ny + 1, c);
       }
@@ -80,7 +86,8 @@ void drawMenuBackground(void) {
   /* --- Thien thach trang tri roi rac --- */
   {
     int astPos[][2] = {{150, HEIGHT - 100}, {WIDTH - 350, HEIGHT - 80}, {WIDTH / 2 - 350, 120}};
-    for (i = 0; i < 3; i++) {
+    for (i = 0; i < 3; i++)
+    {
       int ax = astPos[i][0], ay = astPos[i][1];
       int ar = 12 + i * 5;
       setfillstyle(SOLID_FILL, DARKGRAY);
@@ -94,7 +101,8 @@ void drawMenuBackground(void) {
 }
 
 /* drawMainMenu(): Ve man hinh menu chinh voi text can giua */
-void drawMainMenu(int mx, int my) {
+void drawMainMenu(int mx, int my)
+{
   int tw, th, btnCY;
   int startHov = pointInRect(mx, my, MENU_START_X1, MENU_START_Y1,
                              MENU_START_X2, MENU_START_Y2);
@@ -128,7 +136,7 @@ void drawMainMenu(int mx, int my) {
   rectangle(MENU_START_X1, MENU_START_Y1, MENU_START_X2, MENU_START_Y2);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 3);
   tw = textwidth((char *)"BAT DAU");
-  th = textheight((char *)"BAT DAU");
+  th = textHeightCompat("BAT DAU");
   btnCY = (MENU_START_Y1 + MENU_START_Y2) / 2;
   outtextxy(WIDTH / 2 - tw / 2, btnCY - th / 2, (char *)"BAT DAU");
 
@@ -139,7 +147,7 @@ void drawMainMenu(int mx, int my) {
   rectangle(MENU_GUIDE_X1, MENU_GUIDE_Y1, MENU_GUIDE_X2, MENU_GUIDE_Y2);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 3);
   tw = textwidth((char *)"HUONG DAN");
-  th = textheight((char *)"HUONG DAN");
+  th = textHeightCompat("HUONG DAN");
   btnCY = (MENU_GUIDE_Y1 + MENU_GUIDE_Y2) / 2;
   outtextxy(WIDTH / 2 - tw / 2, btnCY - th / 2, (char *)"HUONG DAN");
 
@@ -150,7 +158,7 @@ void drawMainMenu(int mx, int my) {
   rectangle(MENU_EXIT_X1, MENU_EXIT_Y1, MENU_EXIT_X2, MENU_EXIT_Y2);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 3);
   tw = textwidth((char *)"THOAT");
-  th = textheight((char *)"THOAT");
+  th = textHeightCompat("THOAT");
   btnCY = (MENU_EXIT_Y1 + MENU_EXIT_Y2) / 2;
   outtextxy(WIDTH / 2 - tw / 2, btnCY - th / 2, (char *)"THOAT");
 
@@ -160,7 +168,8 @@ void drawMainMenu(int mx, int my) {
 
 /* handleMainMenuClick(): Xu ly click chuot trong menu chinh
  * Tra ve: 1=Start, 2=Guide, 3=Exit, 0=khong click gi */
-int handleMainMenuClick(int mx, int my) {
+int handleMainMenuClick(int mx, int my)
+{
   if (pointInRect(mx, my, MENU_START_X1, MENU_START_Y1, MENU_START_X2,
                   MENU_START_Y2))
     return 1;

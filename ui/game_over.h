@@ -49,7 +49,7 @@ void drawGameOverScreen(int score, int level, int mx, int my) {
             GAMEOVER_REPLAY_Y2);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 3);
   tw = textwidth((char *)"CHOI LAI");
-  th = textheight((char *)"CHOI LAI");
+  th = textHeightCompat("CHOI LAI");
   btnCY = (GAMEOVER_REPLAY_Y1 + GAMEOVER_REPLAY_Y2) / 2;
   outtextxy(WIDTH / 2 - tw / 2, btnCY - th / 2, (char *)"CHOI LAI");
 
@@ -61,7 +61,7 @@ void drawGameOverScreen(int score, int level, int mx, int my) {
             GAMEOVER_MENU_Y2);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
   tw = textwidth((char *)"VE MENU CHINH");
-  th = textheight((char *)"VE MENU CHINH");
+  th = textHeightCompat("VE MENU CHINH");
   btnCY = (GAMEOVER_MENU_Y1 + GAMEOVER_MENU_Y2) / 2;
   outtextxy(WIDTH / 2 - tw / 2, btnCY - th / 2, (char *)"VE MENU CHINH");
 

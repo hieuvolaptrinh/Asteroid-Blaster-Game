@@ -4,7 +4,7 @@
 /* drawStars(): Ve cac ngoi sao nen voi hieu ung nhap nhay */
 void drawStars(void) {
   int i, c, phase, brightness;
-  gStarFrame++; /* Tang frame moi lan ve */
+  gStarFrame++;
   for (i = 0; i < MAX_STARS; i++) {
     /* Tinh pha hien tai cua sao: ket hop frame toan cuc va pha rieng */
     phase = (gStarFrame + sPhase[i]) % 60;

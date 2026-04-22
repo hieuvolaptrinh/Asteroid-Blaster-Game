@@ -2,7 +2,8 @@
 #define PAUSE_H
 
 /* drawPauseMenu(): Ve lop overlay tam dung game (can giua, tieng Viet) */
-void drawPauseMenu(int hmx, int hmy) {
+void drawPauseMenu(int hmx, int hmy)
+{
   int tw, th, btnCY;
   int contHov = pointInRect(hmx, hmy, CONT_X1, CONT_Y1, CONT_X2, CONT_Y2);
   int exitHov = pointInRect(hmx, hmy, EXIT_X1, EXIT_Y1, EXIT_X2, EXIT_Y2);
@@ -38,7 +39,7 @@ void drawPauseMenu(int hmx, int hmy) {
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
   setcolor(contHov ? YELLOW : WHITE);
   tw = textwidth((char *)"TIEP TUC");
-  th = textheight((char *)"TIEP TUC");
+  th = textHeightCompat("TIEP TUC");
   btnCY = (CONT_Y1 + CONT_Y2) / 2;
   outtextxy(WIDTH / 2 - tw / 2, btnCY - th / 2, (char *)"TIEP TUC");
 
@@ -50,7 +51,7 @@ void drawPauseMenu(int hmx, int hmy) {
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
   setcolor(exitHov ? YELLOW : WHITE);
   tw = textwidth((char *)"THOAT");
-  th = textheight((char *)"THOAT");
+  th = textHeightCompat("THOAT");
   btnCY = (EXIT_Y1 + EXIT_Y2) / 2;
   outtextxy(WIDTH / 2 - tw / 2, btnCY - th / 2, (char *)"THOAT");
 
@@ -60,7 +61,8 @@ void drawPauseMenu(int hmx, int hmy) {
 
 /* handlePauseMenuClick(): Xu ly click trong pause menu
  * Tra ve: 1=Continue, 2=Exit, 0=khong click */
-int handlePauseMenuClick(int mx, int my) {
+int handlePauseMenuClick(int mx, int my)
+{
   if (pointInRect(mx, my, CONT_X1, CONT_Y1, CONT_X2, CONT_Y2))
     return 1;
   if (pointInRect(mx, my, EXIT_X1, EXIT_Y1, EXIT_X2, EXIT_Y2))

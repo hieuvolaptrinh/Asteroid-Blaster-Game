@@ -2,7 +2,8 @@
 #define INTRODUCTION_H
 
 /* drawGuideScreen(): Hien thi huong dan choi game (tieng Viet, can giua) */
-void drawGuideScreen(int mx, int my) {
+void drawGuideScreen(int mx, int my)
+{
   int tw, th, btnCY;
   int backHov = pointInRect(mx, my, GUIDE_BACK_X1, GUIDE_BACK_Y1, GUIDE_BACK_X2,
                             GUIDE_BACK_Y2);
@@ -18,51 +19,51 @@ void drawGuideScreen(int mx, int my) {
 
   /* --- DIEU KHIEN --- */
   setcolor(LIGHTCYAN);
-  settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
+  settextstyle(DEFAULT_FONT, HORIZ_DIR, 3);
   outtextxy(100, 90, (char *)"DIEU KHIEN:");
 
   setcolor(WHITE);
-  settextstyle(DEFAULT_FONT, HORIZ_DIR, 1);
-  outtextxy(120, 120, (char *)"WASD / Phim mui ten  -  Di chuyen phi thuyen");
-  outtextxy(120, 140, (char *)"Chuot                -  Ngam huong ban");
-  outtextxy(120, 160, (char *)"Tu dong ban          -  Phi thuyen tu dong ban dan");
-  outtextxy(120, 180, (char *)"ESC                  -  Tam dung game");
+  settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
+  outtextxy(120, 125, (char *)"WASD / Phim mui ten  -  Di chuyen phi thuyen");
+  outtextxy(120, 150, (char *)"Chuot                -  Ngam huong ban");
+  outtextxy(120, 175, (char *)"Tu dong ban          -  Phi thuyen tu dong ban dan");
+  outtextxy(120, 200, (char *)"ESC                  -  Tam dung game");
 
   /* --- KY NANG --- */
   setcolor(LIGHTCYAN);
-  settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
-  outtextxy(100, 215, (char *)"KY NANG:");
+  settextstyle(DEFAULT_FONT, HORIZ_DIR, 3);
+  outtextxy(100, 240, (char *)"KY NANG:");
 
   setcolor(YELLOW);
-  settextstyle(DEFAULT_FONT, HORIZ_DIR, 1);
-  outtextxy(120, 245, (char *)"[1] BOM NO - No vung tron quanh phi thuyen (CD: 8 giay)");
+  settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
+  outtextxy(120, 275, (char *)"[1] BOM NO - No vung tron quanh phi thuyen (CD: 8 giay)");
 
   setcolor(LIGHTBLUE);
-  outtextxy(120, 265, (char *)"[2] LAM CHAM - Lam cham thien thach trong 4 giay (CD: 12 giay)");
+  outtextxy(120, 300, (char *)"[2] LAM CHAM - Lam cham thien thach trong 4 giay (CD: 12 giay)");
 
   setcolor(LIGHTCYAN);
-  outtextxy(120, 285, (char *)"[3] TIA XUYEN - Ban tia laser xuyen qua (CD: 10 giay)");
+  outtextxy(120, 325, (char *)"[3] TIA XUYEN - Ban tia laser xuyen qua (CD: 10 giay)");
 
   /* --- MUC TIEU --- */
   setcolor(LIGHTCYAN);
-  settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
-  outtextxy(100, 325, (char *)"MUC TIEU:");
+  settextstyle(DEFAULT_FONT, HORIZ_DIR, 3);
+  outtextxy(100, 360, (char *)"MUC TIEU:");
 
   setcolor(WHITE);
-  settextstyle(DEFAULT_FONT, HORIZ_DIR, 1);
-  outtextxy(120, 355, (char *)"- Pha huy thien thach de ghi diem");
-  outtextxy(120, 375, (char *)"- Thu thap tinh the nang luong de nang cap");
-  outtextxy(120, 395, (char *)"- Dat 1000 diem moi cap de len level");
-  outtextxy(120, 415, (char *)"- Song sot cang lau cang tot!");
+  settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
+  outtextxy(120, 395, (char *)"- Pha huy thien thach de ghi diem");
+  outtextxy(120, 420, (char *)"- Thu thap tinh the nang luong de nang cap");
+  outtextxy(120, 445, (char *)"- Dat 1000 diem moi cap de len level");
+  outtextxy(120, 470, (char *)"- Song sot cang lau cang tot!");
 
   /* --- TINH THE NANG CAP --- */
   setcolor(LIGHTMAGENTA);
-  settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
-  outtextxy(100, 455, (char *)"TINH THE NANG CAP:");
+  settextstyle(DEFAULT_FONT, HORIZ_DIR, 3);
+  outtextxy(100, 505, (char *)"TINH THE NANG CAP:");
 
   setcolor(WHITE);
-  settextstyle(DEFAULT_FONT, HORIZ_DIR, 1);
-  outtextxy(120, 485, (char *)"Xoay vong: So dan -> Sat thuong -> Toc do ban");
+  settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
+  outtextxy(120, 540, (char *)"Xoay vong: So dan -> Sat thuong -> Toc do ban");
 
   /* --- Nut QUAY LAI (can giua) --- */
   setfillstyle(SOLID_FILL, backHov ? CYAN : DARKGRAY);
@@ -71,7 +72,7 @@ void drawGuideScreen(int mx, int my) {
   rectangle(GUIDE_BACK_X1, GUIDE_BACK_Y1, GUIDE_BACK_X2, GUIDE_BACK_Y2);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
   tw = textwidth((char *)"QUAY LAI");
-  th = textheight((char *)"QUAY LAI");
+  th = textHeightCompat("QUAY LAI");
   btnCY = (GUIDE_BACK_Y1 + GUIDE_BACK_Y2) / 2;
   outtextxy(WIDTH / 2 - tw / 2, btnCY - th / 2, (char *)"QUAY LAI");
 
@@ -80,7 +81,8 @@ void drawGuideScreen(int mx, int my) {
 
 /* handleGuideClick(): Kiem tra click nut BACK
  * Tra ve: 1=Back, 0=khong click */
-int handleGuideClick(int mx, int my) {
+int handleGuideClick(int mx, int my)
+{
   if (pointInRect(mx, my, GUIDE_BACK_X1, GUIDE_BACK_Y1, GUIDE_BACK_X2,
                   GUIDE_BACK_Y2))
     return 1;
