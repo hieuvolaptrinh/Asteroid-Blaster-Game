@@ -171,6 +171,7 @@ void handleSkillsInput(SkillSystem *sk, Ship *ship, int mx, int my,
       sk->bombX = ship->x;
       sk->bombY = ship->y;
       sk->bombDmgDone = 0;
+      playSoundEffect(SFX_SKILL7); /* Play skill 7 sound */
     }
   }
 
@@ -180,6 +181,7 @@ void handleSkillsInput(SkillSystem *sk, Ship *ship, int mx, int my,
     {
       sk->slowLast = now;
       sk->slowActive = 1;
+      playSoundEffect(SFX_SKILL8); /* Play skill 8 sound */
     }
   }
 
@@ -198,6 +200,7 @@ void handleSkillsInput(SkillSystem *sk, Ship *ship, int mx, int my,
       sk->beamSY = ship->y;
       sk->beamDX = dx / ln;
       sk->beamDY = dy / ln;
+      playSoundEffect(SFX_SKILL9); /* Play skill 9 sound */
     }
   }
 }
@@ -269,6 +272,7 @@ void tryAutoShoot(Ship *ship, Bullet bul[], int n, int mx, int my,
   if (ln < 5.0f)
     return;
   shootPellets(ship, bul, n, dx / ln, dy / ln);
+  playSoundEffect(SFX_SHOT); /* Play shot sound */
   *lastShot = now;
 }
 
@@ -464,6 +468,7 @@ void handleBulletAsteroidCollisions(Bullet bul[], int nb, Asteroid ast[],
 
           spawnExplosion(exps, MAX_EXPLOSIONS, ast[j].x, ast[j].y,
                          (float)ast[j].radius);
+          playSoundEffect(SFX_EXPLOSION); /* Play explosion sound */
           if (rand() % 100 < ITEM_DROP_CHANCE)
             spawnItem(items, MAX_ITEMS, ast[j].x, ast[j].y);
           initAsteroid(&ast[j], level, &gCfg);
@@ -496,6 +501,7 @@ void handleShipAsteroidCollision(Ship *s, Asteroid ast[], int na, int *hp,
         if (*hp < 0)
           *hp = 0;
         *lastHit = now;
+        playSoundEffect(SFX_LEVEL_DOWN); /* Play damage sound */
       }
       spawnExplosion(exps, MAX_EXPLOSIONS, ast[j].x, ast[j].y,
                      (float)ast[j].radius * 0.5f);
@@ -516,6 +522,7 @@ void handleItemPickup(Ship *s, Item it[], int n)
                              (float)it[i].radius))
     {
       applyItemToShip(s);
+      playSoundEffect(SFX_LEVEL_UP); /* Play power-up sound */
       it[i].active = 0;
     }
   }
@@ -550,6 +557,7 @@ void applySkillDamage(SkillSystem *sk, Asteroid ast[], int na, int *score,
           *score += pts + ast[j].maxHp * 5;
           spawnExplosion(exps, MAX_EXPLOSIONS, ast[j].x, ast[j].y,
                          (float)ast[j].radius);
+          playSoundEffect(SFX_EXPLOSION); /* Play explosion sound */
           if (rand() % 100 < ITEM_DROP_CHANCE)
             spawnItem(items, MAX_ITEMS, ast[j].x, ast[j].y);
           initAsteroid(&ast[j], level, &gCfg);
@@ -579,6 +587,7 @@ void applySkillDamage(SkillSystem *sk, Asteroid ast[], int na, int *score,
           *score += pts + ast[j].maxHp * 5;
           spawnExplosion(exps, MAX_EXPLOSIONS, ast[j].x, ast[j].y,
                          (float)ast[j].radius);
+          playSoundEffect(SFX_EXPLOSION); /* Play explosion sound */
           if (rand() % 100 < ITEM_DROP_CHANCE)
             spawnItem(items, MAX_ITEMS, ast[j].x, ast[j].y);
           initAsteroid(&ast[j], level, &gCfg);

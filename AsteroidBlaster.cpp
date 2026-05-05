@@ -7,6 +7,12 @@
 
 /* --- Core headers --- */
 #include "core/types.h"      /* Structs, defines, constants, utilities  */
+
+/* --- Sound system (must be before game_logic) --- */
+#define MINIAUDIO_IMPLEMENTATION
+#include "core/sound.h" /* Background music (miniaudio)          */
+
+/* --- Game logic (needs sound system) --- */
 #include "core/game_logic.h" /* Init, update, collision, skills         */
 
 /* --- UI headers (backgrounds, menus) --- */
@@ -16,8 +22,6 @@
 #include "core/draw_ship.h"     /* drawShip, drawShipBody, engine, aura   */
 #include "core/draw_asteroid.h" /* drawAsteroids (fixed: fillpoly)        */
 #include "core/draw_effects.h"  /* drawBullets, Items, Explosions, Skills */
-#define MINIAUDIO_IMPLEMENTATION
-#include "core/sound.h" /* Background music (miniaudio)          */
 
 /* --- UI headers (screens, HUD) --- */
 #include "ui/game_over.h"     /* drawGameOverScreen                      */
@@ -90,6 +94,7 @@ int main()
         int choice = handleMainMenuClick(mxClick, myClick);
         if (choice == 1)
         {
+          playSoundEffect(SFX_CLICK_BUTTON); /* Button click sound */
           initGame(&ship, asteroids, bullets, items, explosions, &skills,
                    &score, &hp, &level);
           gameState = STATE_PLAYING;
@@ -99,14 +104,17 @@ int main()
         }
         else if (choice == 2)
         {
+          playSoundEffect(SFX_CLICK_BUTTON); /* Button click sound */
           gameState = STATE_GUIDE;
         }
         else if (choice == 3)
         {
+          playSoundEffect(SFX_CLICK_BUTTON); /* Button click sound */
           running = 0;
         }
         else if (choice == 4)
         {
+          playSoundEffect(SFX_CLICK_BUTTON); /* Button click sound */
           toggleMusic();
         }
         break;
@@ -117,6 +125,7 @@ int main()
         int back = handleGuideClick(mxClick, myClick);
         if (back == 1)
         {
+          playSoundEffect(SFX_CLICK_BUTTON); /* Button click sound */
           gameState = STATE_MAIN_MENU;
         }
         break;
@@ -127,10 +136,12 @@ int main()
         int choice = handlePauseMenuClick(mxClick, myClick);
         if (choice == 1)
         {
+          playSoundEffect(SFX_CLICK_BUTTON); /* Button click sound */
           gameState = STATE_PLAYING;
         }
         else if (choice == 2)
         {
+          playSoundEffect(SFX_CLICK_BUTTON); /* Button click sound */
           gameState = STATE_MAIN_MENU;
         }
         break;
@@ -141,6 +152,7 @@ int main()
         int choice = handleGameOverClick(mxClick, myClick);
         if (choice == 1)
         {
+          playSoundEffect(SFX_CLICK_BUTTON); /* Button click sound */
           initGame(&ship, asteroids, bullets, items, explosions, &skills,
                    &score, &hp, &level);
           gameState = STATE_PLAYING;
@@ -149,6 +161,7 @@ int main()
         }
         else if (choice == 2)
         {
+          playSoundEffect(SFX_CLICK_BUTTON); /* Button click sound */
           gameState = STATE_MAIN_MENU;
         }
         break;
@@ -281,6 +294,7 @@ int main()
 
       if (hp <= 0)
       {
+        playSoundEffect(SFX_GAMEOVER); /* Play game over sound */
         gameState = STATE_GAME_OVER;
       }
 
