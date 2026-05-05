@@ -6,16 +6,18 @@
 /* ====================================================================== */
 
 /* --- Core headers --- */
-#include "core/types.h"        /* Structs, defines, constants, utilities  */
-#include "core/game_logic.h"   /* Init, update, collision, skills         */
+#include "core/types.h"      /* Structs, defines, constants, utilities  */
+#include "core/game_logic.h" /* Init, update, collision, skills         */
 
 /* --- UI headers (backgrounds, menus) --- */
 #include "ui/background_level.h" /* drawBackground, drawStars, levels    */
 
 /* --- Core drawing headers --- */
-#include "core/draw_ship.h"    /* drawShip, drawShipBody, engine, aura   */
-#include "core/draw_asteroid.h"/* drawAsteroids (fixed: fillpoly)        */
-#include "core/draw_effects.h" /* drawBullets, Items, Explosions, Skills */
+#include "core/draw_ship.h"     /* drawShip, drawShipBody, engine, aura   */
+#include "core/draw_asteroid.h" /* drawAsteroids (fixed: fillpoly)        */
+#include "core/draw_effects.h"  /* drawBullets, Items, Explosions, Skills */
+#define MINIAUDIO_IMPLEMENTATION
+#include "core/sound.h" /* Background music (miniaudio)          */
 
 /* --- UI headers (screens, HUD) --- */
 #include "ui/game_over.h"     /* drawGameOverScreen                      */
@@ -39,6 +41,7 @@ int main()
 
   int score = 0, hp = INITIAL_HP, level = 1;
   unsigned long lastShot = 0, lastHit = 0;
+  unsigned long lastMenuClick = 0;
   int mx = WIDTH / 2, my = HEIGHT / 2;
   int frameCount = 0, levelBanner = 0, page = 0;
   int mxClick, myClick;
@@ -50,6 +53,8 @@ int main()
   initwindow(WIDTH, HEIGHT, "Asteroid Blaster v3.0");
   setbkcolor(COL_SPACE_BG);
   cleardevice();
+
+  (void)initAudioSystem("asset/sound/background_music.mp3");
 
   /* Khoi tao double buffer: xoa sach ca 2 trang */
   setactivepage(0);
@@ -78,6 +83,9 @@ int main()
       {
       case STATE_MAIN_MENU:
       {
+        if (now - lastMenuClick < 200)
+          break;
+        lastMenuClick = now;
         int choice = handleMainMenuClick(mxClick, myClick);
         if (choice == 1)
         {
@@ -86,6 +94,7 @@ int main()
           gameState = STATE_PLAYING;
           frameCount = 0;
           levelBanner = 0;
+          clearmouseclick(WM_LBUTTONDOWN);
         }
         else if (choice == 2)
         {
@@ -94,6 +103,10 @@ int main()
         else if (choice == 3)
         {
           running = 0;
+        }
+        else if (choice == 4)
+        {
+          toggleMusic();
         }
         break;
       }
@@ -177,7 +190,7 @@ int main()
     case STATE_MAIN_MENU:
       setactivepage(1 - page);
       cleardevice();
-      drawMainMenu(mx, my);
+      drawMainMenu(mx, my, isMusicEnabled());
       setvisualpage(1 - page);
       page = 1 - page;
       delay(20);
@@ -322,5 +335,6 @@ int main()
   }
 
   closegraph();
+  shutdownAudioSystem();
   return 0;
 }

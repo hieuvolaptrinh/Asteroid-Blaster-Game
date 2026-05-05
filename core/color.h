@@ -349,6 +349,82 @@
 #define COL_SMOKE_3         COLOR(35, 32, 30)     /* Khoi den                      */
 
 /* ====================================================================== */
+/*     SHIP BODY GRADIENT (6 buoc: shadow dam -> xanh sang -> trang)      */
+/* ====================================================================== */
+#define COL_SHIP_GRAD_0     COLOR(15, 35, 100)    /* Xanh toi nhat (base)          */
+#define COL_SHIP_GRAD_1     COLOR(20, 50, 140)    /* Xanh dam                      */
+#define COL_SHIP_GRAD_2     COLOR(35, 90, 185)    /* Xanh trung                    */
+#define COL_SHIP_GRAD_3     COLOR(65, 130, 215)   /* Xanh sang                     */
+#define COL_SHIP_GRAD_4     COLOR(100, 175, 240)  /* Xanh nhat                     */
+#define COL_SHIP_GRAD_5     COLOR(150, 215, 255)  /* Cyan nhat (specular)          */
+
+/* ====================================================================== */
+/*     SHIP WING GRADIENT (5 buoc: xanh toi -> xanh nhat)                 */
+/* ====================================================================== */
+#define COL_WING_GRAD_0     COLOR(12, 30, 80)     /* Canh toi nhat                 */
+#define COL_WING_GRAD_1     COLOR(18, 45, 120)    /* Canh dam                      */
+#define COL_WING_GRAD_2     COLOR(35, 80, 170)    /* Canh trung                    */
+#define COL_WING_GRAD_3     COLOR(55, 120, 200)   /* Canh sang                     */
+#define COL_WING_GRAD_4     COLOR(85, 165, 235)   /* Canh sang nhat                */
+
+/* ====================================================================== */
+/*     COCKPIT GRADIENT (5 buoc: xanh dam -> trang anh sang)              */
+/* ====================================================================== */
+#define COL_COCKPIT_GRAD_0  COLOR(40, 100, 180)   /* Kinh toi (rim)                */
+#define COL_COCKPIT_GRAD_1  COLOR(70, 150, 220)   /* Kinh trung                    */
+#define COL_COCKPIT_GRAD_2  COLOR(110, 195, 255)  /* Kinh sang                     */
+#define COL_COCKPIT_GRAD_3  COLOR(170, 225, 255)  /* Kinh nhat                     */
+#define COL_COCKPIT_GRAD_4  COLOR(230, 248, 255)  /* Anh sang phan chieu nhat      */
+
+/* ====================================================================== */
+/*     FLAME GRADIENT – Smooth (10 buoc: trang -> vang -> cam -> do)      */
+/* ====================================================================== */
+#define COL_FLAME_GRAD_0    COLOR(255, 255, 240)  /* Loi trang nong                */
+#define COL_FLAME_GRAD_1    COLOR(255, 248, 200)  /* Trang am                      */
+#define COL_FLAME_GRAD_2    COLOR(255, 235, 140)  /* Vang nhat                     */
+#define COL_FLAME_GRAD_3    COLOR(255, 215, 80)   /* Vang dam                      */
+#define COL_FLAME_GRAD_4    COLOR(255, 190, 50)   /* Cam vang                      */
+#define COL_FLAME_GRAD_5    COLOR(255, 155, 35)   /* Cam                           */
+#define COL_FLAME_GRAD_6    COLOR(255, 110, 25)   /* Cam do                        */
+#define COL_FLAME_GRAD_7    COLOR(240, 70, 20)    /* Do cam                        */
+#define COL_FLAME_GRAD_8    COLOR(210, 40, 15)    /* Do dam                        */
+#define COL_FLAME_GRAD_9    COLOR(160, 25, 10)    /* Do toi                        */
+
+/* ====================================================================== */
+/*     AURA/SHIELD GRADIENT (6 buoc: xanh dam -> cyan -> trang)           */
+/* ====================================================================== */
+#define COL_AURA_GRAD_0     COLOR(20, 40, 120)    /* Aura toi nhat                 */
+#define COL_AURA_GRAD_1     COLOR(35, 80, 180)    /* Aura dam                      */
+#define COL_AURA_GRAD_2     COLOR(55, 140, 220)   /* Aura trung                    */
+#define COL_AURA_GRAD_3     COLOR(80, 190, 245)   /* Aura sang                     */
+#define COL_AURA_GRAD_4     COLOR(120, 220, 255)  /* Aura nhat                     */
+#define COL_AURA_GRAD_5     COLOR(180, 240, 255)  /* Aura trang xanh               */
+
+/* ====================================================================== */
+/*     CROSSHAIR GRADIENT (4 buoc: xanh dam -> xanh la sang)              */
+/* ====================================================================== */
+#define COL_CROSS_GRAD_0    COLOR(20, 100, 35)    /* Crosshair toi                 */
+#define COL_CROSS_GRAD_1    COLOR(40, 155, 55)    /* Crosshair dam                 */
+#define COL_CROSS_GRAD_2    COLOR(65, 210, 80)    /* Crosshair sang                */
+#define COL_CROSS_GRAD_3    COLOR(120, 250, 140)  /* Crosshair nhat                */
+
+/* ====================================================================== */
+/*     SHADOW GRADIENT (4 buoc: cho bong chuyen mau muot)                  */
+/* ====================================================================== */
+#define COL_SHADOW_GRAD_0   COLOR(5, 8, 20)       /* Bong den nhat                 */
+#define COL_SHADOW_GRAD_1   COLOR(10, 15, 35)     /* Bong dam                      */
+#define COL_SHADOW_GRAD_2   COLOR(18, 25, 55)     /* Bong trung                    */
+#define COL_SHADOW_GRAD_3   COLOR(30, 40, 75)     /* Bong nhat                     */
+
+/* ====================================================================== */
+/*     EDGE GLOW GRADIENT (cho vien phat sang)                             */
+/* ====================================================================== */
+#define COL_EDGE_GLOW_0     COLOR(80, 160, 230)   /* Glow toi                      */
+#define COL_EDGE_GLOW_1     COLOR(120, 195, 245)  /* Glow trung                    */
+#define COL_EDGE_GLOW_2     COLOR(170, 225, 255)  /* Glow sang                     */
+#define COL_EDGE_GLOW_3     COLOR(220, 242, 255)  /* Glow trang                    */
+
+/* ====================================================================== */
 /*               UTILITY: Blend (Lerp) hai mau tai runtime                 */
 /* ====================================================================== */
 /*

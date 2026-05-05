@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <windows.h>
-#include "color.h"        /* He thong mau RGB thong nhat */
+#include "color.h" /* He thong mau RGB thong nhat */
 
 /*
  * MinGW libbgi co the export textheight voi C++ mangling,
@@ -92,6 +92,12 @@ static int textHeightCompat(const char *text) { return bgi_textheight_cpp(text);
 #define MENU_EXIT_Y1 (HEIGHT / 2 + 120)
 #define MENU_EXIT_X2 (WIDTH / 2 + 150)
 #define MENU_EXIT_Y2 (HEIGHT / 2 + 170)
+
+/* Toa do nut AM THANH (toggle music) */
+#define MENU_SOUND_X1 (WIDTH / 2 - 150)
+#define MENU_SOUND_Y1 (HEIGHT / 2 + 190)
+#define MENU_SOUND_X2 (WIDTH / 2 + 150)
+#define MENU_SOUND_Y2 (HEIGHT / 2 + 240)
 
 /* Toa do nut BACK trong Guide */
 #define GUIDE_BACK_X1 (WIDTH / 2 - 100)

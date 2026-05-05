@@ -72,8 +72,8 @@ void drawMenuBackground(void)
       int nx = 50 + (seed % 200);
       int ny = HEIGHT / 2 - 50 + ((seed / 7) % 150);
       int c = (i % 4 == 0) ? COL_NEBULA_PURPLE : (i % 4 == 1) ? COL_NEBULA_LTCYAN
-                                               : (i % 4 == 2)  ? COL_NEBULA_CYAN
-                                                                : COL_NEBULA_PINK;
+                                             : (i % 4 == 2)   ? COL_NEBULA_CYAN
+                                                              : COL_NEBULA_PINK;
       putpixel(nx, ny, c);
       if (i % 5 == 0)
       {
@@ -101,7 +101,7 @@ void drawMenuBackground(void)
 }
 
 /* drawMainMenu(): Ve man hinh menu chinh voi text can giua */
-void drawMainMenu(int mx, int my)
+void drawMainMenu(int mx, int my, int musicOn)
 {
   int tw, th, btnCY;
   int startHov = pointInRect(mx, my, MENU_START_X1, MENU_START_Y1,
@@ -110,6 +110,8 @@ void drawMainMenu(int mx, int my)
                              MENU_GUIDE_X2, MENU_GUIDE_Y2);
   int exitHov = pointInRect(mx, my, MENU_EXIT_X1, MENU_EXIT_Y1, MENU_EXIT_X2,
                             MENU_EXIT_Y2);
+  int soundHov = pointInRect(mx, my, MENU_SOUND_X1, MENU_SOUND_Y1,
+                             MENU_SOUND_X2, MENU_SOUND_Y2);
 
   cleardevice();
   drawMenuBackground();
@@ -162,6 +164,27 @@ void drawMainMenu(int mx, int my)
   btnCY = (MENU_EXIT_Y1 + MENU_EXIT_Y2) / 2;
   outtextxy(WIDTH / 2 - tw / 2, btnCY - th / 2, (char *)"THOAT");
 
+  /* --- Nut AM THANH (toggle) --- */
+  setfillstyle(SOLID_FILL, soundHov ? COL_BTN_HOVER_BLUE : COL_BTN_NORMAL);
+  bar(MENU_SOUND_X1, MENU_SOUND_Y1, MENU_SOUND_X2, MENU_SOUND_Y2);
+  setcolor(soundHov ? COL_BTN_TEXT_HOV : COL_TEXT_SUBTITLE);
+  rectangle(MENU_SOUND_X1, MENU_SOUND_Y1, MENU_SOUND_X2, MENU_SOUND_Y2);
+  settextstyle(DEFAULT_FONT, HORIZ_DIR, 3);
+  if (musicOn)
+  {
+    tw = textwidth((char *)"SOUND: BAT");
+    th = textHeightCompat("SOUND: BAT");
+    btnCY = (MENU_SOUND_Y1 + MENU_SOUND_Y2) / 2;
+    outtextxy(WIDTH / 2 - tw / 2, btnCY - th / 2, (char *)"SOUND: BAT");
+  }
+  else
+  {
+    tw = textwidth((char *)"SOUND: TAT");
+    th = textHeightCompat("SOUND: TAT");
+    btnCY = (MENU_SOUND_Y1 + MENU_SOUND_Y2) / 2;
+    outtextxy(WIDTH / 2 - tw / 2, btnCY - th / 2, (char *)"SOUND: TAT");
+  }
+
   /* Reset */
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 1);
 }
@@ -179,6 +202,9 @@ int handleMainMenuClick(int mx, int my)
   if (pointInRect(mx, my, MENU_EXIT_X1, MENU_EXIT_Y1, MENU_EXIT_X2,
                   MENU_EXIT_Y2))
     return 3;
+  if (pointInRect(mx, my, MENU_SOUND_X1, MENU_SOUND_Y1, MENU_SOUND_X2,
+                  MENU_SOUND_Y2))
+    return 4;
   return 0;
 }
 
