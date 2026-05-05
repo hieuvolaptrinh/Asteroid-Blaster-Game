@@ -5,8 +5,10 @@
 /*              HUD, LEVEL BANNER, MENU BUTTON                            */
 /* ====================================================================== */
 
-/* drawHUD(): Ve giao dien nguoi choi: HP, Level, Score, chi so dan, cooldown skill. */
-void drawHUD(int score, int hp, int level, Ship ship, SkillSystem *sk)
+/* drawHUD(): Ve giao dien nguoi choi: HP, Level, Score, chi so dan,
+ *            cooldown skill, va toc do game. */
+void drawHUD(int score, int hp, int level, Ship ship, SkillSystem *sk,
+             int gameSpeed)
 {
   char buf[80];
   unsigned long now = GetTickCount();
@@ -75,56 +77,95 @@ void drawHUD(int score, int hp, int level, Ship ship, SkillSystem *sk)
   sprintf(buf, "Next Lv: %d", level * LEVEL_UP_SCORE);
   outtextxy(15, HEIGHT - 30, buf);
 
-  /* Skill cooldown */
+  /* ============================================================== */
+  /*  Hien thi TOC DO GAME (goc trai, duoi weapon stats)            */
+  /* ============================================================== */
+  {
+    const char *speedLabel;
+    int speedColor;
+    switch (gameSpeed)
+    {
+    case 0:
+      speedLabel = "DUNG";
+      speedColor = COL_TEXT_DANGER;
+      break;
+    case 1:
+      speedLabel = "CHAM";
+      speedColor = COL_TEXT_SUBTITLE;
+      break;
+    case 2:
+      speedLabel = "BINH THUONG";
+      speedColor = COL_TEXT_SUCCESS;
+      break;
+    case 3:
+      speedLabel = "NHANH";
+      speedColor = COL_TEXT_TITLE;
+      break;
+    default:
+      speedLabel = "BINH THUONG";
+      speedColor = COL_TEXT_SUCCESS;
+      break;
+    }
+
+    setcolor(COL_TEXT_DIM);
+    settextstyle(DEFAULT_FONT, HORIZ_DIR, 1);
+    outtextxy(15, HEIGHT - 12, (char *)"TOC DO [0-3]:");
+    setcolor(speedColor);
+    outtextxy(120, HEIGHT - 12, (char *)speedLabel);
+  }
+
+  /* ============================================================== */
+  /*  Skill cooldown (phim 7-8-9)                                   */
+  /* ============================================================== */
   {
     int sx = WIDTH - 360, sy = HEIGHT - 80;
     float cd;
     int color;
 
-    /* Skill 1 – Bomb */
+    /* Skill 1 – Bomb (phim 7) */
     cd = 0;
     if (now - sk->bombLast < sk->bombCD)
       cd = (float)(sk->bombCD - (now - sk->bombLast)) / 1000.0f;
     color = (cd <= 0) ? COL_TEXT_SUCCESS : COL_TEXT_DANGER;
     setcolor(color);
     if (cd <= 0)
-      sprintf(buf, "[1] BOMB: Ready");
+      sprintf(buf, "[7] BOMB: Ready");
     else
-      sprintf(buf, "[1] BOMB: %.1fs", cd);
+      sprintf(buf, "[7] BOMB: %.1fs", cd);
     outtextxy(sx, sy, buf);
 
-    /* Skill 2 – Slow */
+    /* Skill 2 – Slow (phim 8) */
     cd = 0;
     if (now - sk->slowLast < sk->slowCD)
       cd = (float)(sk->slowCD - (now - sk->slowLast)) / 1000.0f;
     if (sk->slowActive)
     {
       color = COL_TEXT_TITLE;
-      sprintf(buf, "[2] SLOW: Active");
+      sprintf(buf, "[8] SLOW: Active");
     }
     else if (cd <= 0)
     {
       color = COL_TEXT_SUCCESS;
-      sprintf(buf, "[2] SLOW: Ready");
+      sprintf(buf, "[8] SLOW: Ready");
     }
     else
     {
       color = COL_TEXT_DANGER;
-      sprintf(buf, "[2] SLOW: %.1fs", cd);
+      sprintf(buf, "[8] SLOW: %.1fs", cd);
     }
     setcolor(color);
     outtextxy(sx, sy + 16, buf);
 
-    /* Skill 3 – Beam */
+    /* Skill 3 – Beam (phim 9) */
     cd = 0;
     if (now - sk->beamLast < sk->beamCD)
       cd = (float)(sk->beamCD - (now - sk->beamLast)) / 1000.0f;
     color = (cd <= 0) ? COL_TEXT_SUCCESS : COL_TEXT_DANGER;
     setcolor(color);
     if (cd <= 0)
-      sprintf(buf, "[3] BEAM: Ready");
+      sprintf(buf, "[9] BEAM: Ready");
     else
-      sprintf(buf, "[3] BEAM: %.1fs", cd);
+      sprintf(buf, "[9] BEAM: %.1fs", cd);
     outtextxy(sx, sy + 32, buf);
   }
 }

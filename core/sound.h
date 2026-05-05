@@ -44,6 +44,7 @@ static int initAudioSystem(const char *musicPath)
 
     gAudio.bgmReady = 1;
     ma_sound_set_looping(&gAudio.bgm, MA_TRUE);
+    ma_sound_set_volume(&gAudio.bgm, 0.5f); /* Set volume to 50% */
     ma_sound_start(&gAudio.bgm);
     return 1;
 }

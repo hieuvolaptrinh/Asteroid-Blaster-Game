@@ -48,6 +48,7 @@ int main()
 
   GameState gameState = STATE_MAIN_MENU;
   int running = 1;
+  int gameSpeed = 2; /* 0=Dung(Pause), 1=Cham, 2=Binh thuong, 3=Nhanh */
 
   int gd = DETECT, gm;
   initwindow(WIDTH, HEIGHT, "Asteroid Blaster v3.0");
@@ -171,11 +172,35 @@ int main()
         gameState = STATE_PAUSED;
         delay(200);
       }
+
+      /* Xu ly phim 0-3: Dieu khien toc do game */
+      if (GetAsyncKeyState('0') & 0x8000)
+      {
+        gameSpeed = 0;
+        gameState = STATE_PAUSED;
+        delay(200);
+      }
+      else if (GetAsyncKeyState('1') & 0x8000)
+      {
+        gameSpeed = 1; /* Cham */
+        delay(150);
+      }
+      else if (GetAsyncKeyState('2') & 0x8000)
+      {
+        gameSpeed = 2; /* Binh thuong */
+        delay(150);
+      }
+      else if (GetAsyncKeyState('3') & 0x8000)
+      {
+        gameSpeed = 3; /* Nhanh */
+        delay(150);
+      }
     }
     else if (gameState == STATE_PAUSED)
     {
       if (GetAsyncKeyState(VK_ESCAPE) & 0x8000)
       {
+        if (gameSpeed == 0) gameSpeed = 2; /* Reset ve binh thuong */
         gameState = STATE_PLAYING;
         delay(200);
       }
@@ -270,7 +295,7 @@ int main()
       drawExplosions(explosions, MAX_EXPLOSIONS);
       drawSkillEffects(&skills);
       drawShip(ship, mx, my, frameCount);
-      drawHUD(score, hp, level, ship, &skills);
+      drawHUD(score, hp, level, ship, &skills, gameSpeed);
 
       if (levelBanner > 0)
       {
@@ -288,8 +313,13 @@ int main()
       setvisualpage(1 - page);
       page = 1 - page;
 
-      /* BUOC 7: DELAY */
-      delay(20);
+      /* BUOC 7: DELAY (thay doi theo toc do game) */
+      {
+        int frameDelay = 20; /* Mac dinh: binh thuong */
+        if (gameSpeed == 1) frameDelay = 40;      /* Cham */
+        else if (gameSpeed == 3) frameDelay = 10;  /* Nhanh */
+        delay(frameDelay);
+      }
       break;
     }
 
@@ -306,7 +336,7 @@ int main()
       drawExplosions(explosions, MAX_EXPLOSIONS);
       drawSkillEffects(&skills);
       drawShip(ship, mx, my, frameCount);
-      drawHUD(score, hp, level, ship, &skills);
+      drawHUD(score, hp, level, ship, &skills, gameSpeed);
 
       {
         int btnHov = pointInRect(mx, my, MENU_BTN_X1, MENU_BTN_Y1, MENU_BTN_X2,

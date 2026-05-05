@@ -160,8 +160,8 @@ void handleMouse(int *mx, int *my)
 void handleSkillsInput(SkillSystem *sk, Ship *ship, int mx, int my,
                        unsigned long now)
 {
-  /* Skill 1 – Bomb Burst: phim '1', CD 8000ms */
-  if (GetAsyncKeyState('1') & 0x8000)
+  /* Skill 1 – Bomb Burst: phim '7', CD 8000ms */
+  if (GetAsyncKeyState('7') & 0x8000)
   {
     if (now - sk->bombLast >= sk->bombCD)
     {
@@ -174,7 +174,7 @@ void handleSkillsInput(SkillSystem *sk, Ship *ship, int mx, int my,
     }
   }
 
-  if (GetAsyncKeyState('2') & 0x8000)
+  if (GetAsyncKeyState('8') & 0x8000)
   {
     if (now - sk->slowLast >= sk->slowCD)
     {
@@ -183,7 +183,7 @@ void handleSkillsInput(SkillSystem *sk, Ship *ship, int mx, int my,
     }
   }
 
-  if (GetAsyncKeyState('3') & 0x8000)
+  if (GetAsyncKeyState('9') & 0x8000)
   {
     if (now - sk->beamLast >= sk->beamCD)
     {

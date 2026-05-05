@@ -15,55 +15,70 @@ void drawGuideScreen(int mx, int my)
   setcolor(COL_TEXT_TITLE);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 4);
   tw = textwidth((char *)"HUONG DAN CHOI");
-  outtextxy(WIDTH / 2 - tw / 2, 30, (char *)"HUONG DAN CHOI");
+  outtextxy(WIDTH / 2 - tw / 2, 20, (char *)"HUONG DAN CHOI");
 
   /* --- DIEU KHIEN --- */
   setcolor(COL_TEXT_SUBTITLE);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 3);
-  outtextxy(100, 90, (char *)"DIEU KHIEN:");
+  outtextxy(100, 70, (char *)"DIEU KHIEN:");
 
   setcolor(COL_TEXT_BODY);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
-  outtextxy(120, 125, (char *)"WASD / Phim mui ten  -  Di chuyen phi thuyen");
-  outtextxy(120, 150, (char *)"Chuot                -  Ngam huong ban");
-  outtextxy(120, 175, (char *)"Tu dong ban          -  Phi thuyen tu dong ban dan");
-  outtextxy(120, 200, (char *)"ESC                  -  Tam dung game");
+  outtextxy(120, 100, (char *)"WASD / Phim mui ten  -  Di chuyen phi thuyen");
+  outtextxy(120, 122, (char *)"Chuot                -  Ngam huong ban");
+  outtextxy(120, 144, (char *)"Tu dong ban          -  Phi thuyen tu dong ban dan");
+  outtextxy(120, 166, (char *)"ESC                  -  Tam dung game");
 
-  /* --- KY NANG --- */
+  /* --- TOC DO GAME --- */
   setcolor(COL_TEXT_SUBTITLE);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 3);
-  outtextxy(100, 240, (char *)"KY NANG:");
+  outtextxy(100, 200, (char *)"TOC DO GAME:");
 
-  setcolor(COL_BOMB_HOT);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
-  outtextxy(120, 275, (char *)"[1] BOM NO - No vung tron quanh phi thuyen (CD: 8 giay)");
+  setcolor(COL_TEXT_DANGER);
+  outtextxy(120, 230, (char *)"[0] DUNG       -  Tam dung game (hien menu Pause)");
+  setcolor(COL_TEXT_SUBTITLE);
+  outtextxy(120, 252, (char *)"[1] CHAM       -  Giam toc do game");
+  setcolor(COL_TEXT_SUCCESS);
+  outtextxy(120, 274, (char *)"[2] BINH THUONG-  Toc do mac dinh");
+  setcolor(COL_TEXT_TITLE);
+  outtextxy(120, 296, (char *)"[3] NHANH      -  Tang toc do game");
+
+  /* --- KY NANG (phim 7-8-9) --- */
+  setcolor(COL_TEXT_SUBTITLE);
+  settextstyle(DEFAULT_FONT, HORIZ_DIR, 3);
+  outtextxy(100, 330, (char *)"KY NANG:");
+
+  settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
+  setcolor(COL_BOMB_HOT);
+  outtextxy(120, 360, (char *)"[7] BOM NO     -  No vung tron quanh phi thuyen (CD: 8s)");
 
   setcolor(COL_SLOW_TEXT);
-  outtextxy(120, 300, (char *)"[2] LAM CHAM - Lam cham thien thach trong 4 giay (CD: 12 giay)");
+  outtextxy(120, 382, (char *)"[8] LAM CHAM   -  Lam cham thien thach 4 giay (CD: 12s)");
 
   setcolor(COL_BEAM_OUTER);
-  outtextxy(120, 325, (char *)"[3] TIA XUYEN - Ban tia laser xuyen qua (CD: 10 giay)");
+  outtextxy(120, 404, (char *)"[9] TIA XUYEN  -  Ban tia laser xuyen qua (CD: 10s)");
 
   /* --- MUC TIEU --- */
   setcolor(COL_TEXT_SUBTITLE);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 3);
-  outtextxy(100, 360, (char *)"MUC TIEU:");
+  outtextxy(100, 440, (char *)"MUC TIEU:");
 
   setcolor(COL_TEXT_BODY);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
-  outtextxy(120, 395, (char *)"- Pha huy thien thach de ghi diem");
-  outtextxy(120, 420, (char *)"- Thu thap tinh the nang luong de nang cap");
-  outtextxy(120, 445, (char *)"- Dat 1000 diem moi cap de len level");
-  outtextxy(120, 470, (char *)"- Song sot cang lau cang tot!");
+  outtextxy(120, 470, (char *)"- Pha huy thien thach de ghi diem");
+  outtextxy(120, 492, (char *)"- Thu thap tinh the nang luong de nang cap");
+  outtextxy(120, 514, (char *)"- Dat 1000 diem moi cap de len level");
+  outtextxy(120, 536, (char *)"- Song sot cang lau cang tot!");
 
   /* --- TINH THE NANG CAP --- */
   setcolor(COL_CRYSTAL_B);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 3);
-  outtextxy(100, 505, (char *)"TINH THE NANG CAP:");
+  outtextxy(100, 565, (char *)"TINH THE NANG CAP:");
 
   setcolor(COL_TEXT_BODY);
   settextstyle(DEFAULT_FONT, HORIZ_DIR, 2);
-  outtextxy(120, 540, (char *)"Xoay vong: So dan -> Sat thuong -> Toc do ban");
+  outtextxy(120, 595, (char *)"Xoay vong: So dan -> Sat thuong -> Toc do ban");
 
   /* --- Nut QUAY LAI (can giua) --- */
   setfillstyle(SOLID_FILL, backHov ? COL_BTN_HOVER_CYAN : COL_BTN_NORMAL);
