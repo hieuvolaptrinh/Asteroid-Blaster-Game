@@ -91,16 +91,16 @@ void drawLevel2Background(void)
   setfillstyle(SOLID_FILL, COL_SUN_CORE);
   fillellipse(0, 0, 30, 30);
 
-  /* --- Tia sang Mat Troi (Solar Flares) --- */
+  /* --- Tia sang Mat Troi (Solar Flares) voi Dragon Curve --- */
   for (i = 0; i < 12; i++)
   {
     float angle = i * 30.0f * 3.14159f / 180.0f;
     int x1 = (int)(cosf(angle) * 210);
     int y1 = (int)(sinf(angle) * 210);
-    int x2 = (int)(cosf(angle) * 280);
-    int y2 = (int)(sinf(angle) * 280);
-    setcolor((i % 2) ? COL_SUN_FLARE_A : COL_SUN_FLARE_B);
-    line(x1, y1, x2, y2);
+    
+    /* Ve Dragon Curve tu tam Mat Troi ra ngoai */
+    int flareColor = (i % 2) ? COL_SUN_FLARE_A : COL_SUN_FLARE_B;
+    drawDragonCurve(0, 0, x1, y1, 3, i % 2, flareColor);
   }
 
   /* --- Quy dao hanh tinh --- */
@@ -222,17 +222,9 @@ void drawLevel3Background(void)
     setfillstyle(SOLID_FILL, COL_SATURN_HL);
     fillellipse(sx - 25, sy - 25, 20, 15);
 
-    /* Vanh dai (Rings) - nhieu lop */
-    setcolor(COL_SATURN_RING_DK);
-    for (r = 140; r < 200; r += 3)
-    {
-      ellipse(sx, sy, 20, 160, r, r / 3);
-    }
-    setcolor(COL_SATURN_RING_LT);
-    for (r = 140; r < 200; r += 3)
-    {
-      ellipse(sx, sy, 200, 340, r, r / 3);
-    }
+    /* Vanh dai (Rings) - dung C-Curve Ellipse de tao hieu ung phuc tap */
+    drawCCurveEllipse(sx, sy, 170, 57, 3, COL_SATURN_RING_DK);
+    drawCCurveEllipse(sx, sy, 180, 60, 3, COL_SATURN_RING_LT);
     /* Vanh sang nhat */
     setcolor(COL_SATURN_RING_BR);
     ellipse(sx, sy, 200, 340, 160, 53);
@@ -282,6 +274,9 @@ void drawLevel4Background(void)
   /* Dai duong */
   setfillstyle(SOLID_FILL, COL_EARTH_OCEAN);
   fillellipse(ex, ey, 180, 180);
+  
+  /* Khi quyen Trai Dat voi Koch Circle */
+  drawKochCircle(ex, ey, 185, 2, colorGradient(COL_EARTH_CLOUD, COL_EARTH_OCEAN, 0.3f));
 
   /* Luc dia chi tiet */
   setfillstyle(SOLID_FILL, COL_EARTH_LAND);
@@ -313,6 +308,10 @@ void drawLevel4Background(void)
   fillellipse(mx + 10, my - 25, 8, 8);
   fillellipse(mx - 25, my + 20, 10, 10);
   fillellipse(mx + 30, my - 10, 7, 7);
+  
+  /* Tuyet roi tren Mat Trang voi Koch Snowflake */
+  drawKochSnowflake(mx - 30, my - 40, 15, 1, COL_EARTH_CLOUD);
+  drawKochSnowflake(mx + 35, my + 25, 12, 1, COL_EARTH_CLOUD);
 
   /* --- Tram Vu Tru (Space Station) --- */
   {
@@ -361,7 +360,7 @@ void drawLevel5Background(void)
   int i, r;
   drawStars();
 
-  /* --- Giai Ngan Ha Spiral (Milky Way) --- */
+  /* --- Giai Ngan Ha Spiral (Milky Way) voi C-Curve --- */
   {
     int gx = WIDTH - 250, gy = 150;
 
@@ -369,15 +368,8 @@ void drawLevel5Background(void)
     setfillstyle(SOLID_FILL, COL_GALAXY_CORE);
     fillellipse(gx, gy, 15, 15);
 
-    /* Cac vong xoay oc */
-    for (r = 25; r < 120; r += 15)
-    {
-      int c = (r < 50) ? COL_GALAXY_INNER : (r < 80) ? COL_GALAXY_MID
-                                                      : COL_GALAXY_OUTER;
-      setcolor(c);
-      ellipse(gx, gy, 0, 360, r, r / 2);
-      ellipse(gx, gy, 0, 360, r, r / 3);
-    }
+    /* Cac vong xoay oc voi C-Curve Spiral */
+    drawCCurveSpiral(gx, gy, 120, 4, COL_GALAXY_INNER);
 
     /* Cac ngoi sao trong giai ngan ha */
     unsigned int seed = 99999u;
@@ -543,7 +535,7 @@ void drawLevel6Background(void)
   circle(bx, by, 41);
   circle(bx, by, 42);
 
-  /* --- Cac ngoi sao bi hut vao --- */
+  /* --- Cac ngoi sao bi hut vao voi Dragon Curve --- */
   for (i = 0; i < 15; i++)
   {
     float angle = i * 24.0f * 3.14159f / 180.0f;
@@ -554,9 +546,8 @@ void drawLevel6Background(void)
     setcolor((i % 2) ? COL_STAR_WARM : COL_STAR_GLOW);
     circle(sx, sy, 2);
 
-    /* Duong keo dai bi hut */
-    setcolor(COL_BH_HALO);
-    line(sx, sy, bx, by);
+    /* Duong nang luong bi hut voi Dragon Curve */
+    drawDragonCurve(sx, sy, bx, by, 4, i % 2, COL_BH_HALO);
   }
 
   /* --- Phi thuyen Alien chay tron --- */

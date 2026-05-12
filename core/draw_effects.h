@@ -279,16 +279,15 @@ void drawSkillEffects(SkillSystem *sk)
     }
   }
 
-  /* ---- Piercing Beam: tia sang voi nhieu lop ---- */
+  /* ---- Piercing Beam: tia sang voi Dragon Curve ---- */
   if (sk->beamActive)
   {
     float endX = sk->beamSX + sk->beamDX * 1500;
     float endY = sk->beamSY + sk->beamDY * 1500;
 
-    /* Lop glow ngoai */
-    setcolor(COL_BEAM_GLOW);
-    setlinestyle(SOLID_LINE, 0, 5);
-    line((int)sk->beamSX, (int)sk->beamSY, (int)endX, (int)endY);
+    /* Lop glow ngoai voi Dragon Curve */
+    drawDragonCurve((int)sk->beamSX, (int)sk->beamSY, (int)endX, (int)endY, 
+                    5, 1, COL_BEAM_GLOW);
 
     /* Lop chinh */
     setcolor(COL_BEAM_OUTER);

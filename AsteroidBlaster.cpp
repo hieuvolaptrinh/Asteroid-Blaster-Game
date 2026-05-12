@@ -7,6 +7,8 @@
 
 /* --- Core headers --- */
 #include "core/types.h"      /* Structs, defines, constants, utilities  */
+#include "core/fractal.h"    /* Fractal curves: Koch, Dragon, C-Curve   */
+#include "core/snow.h"       /* Snow particle UI rendering              */
 
 /* --- Sound system (must be before game_logic) --- */
 #define MINIAUDIO_IMPLEMENTATION
@@ -29,6 +31,7 @@
 #include "ui/menu.h"          /* drawMainMenu, drawMenuBackground        */
 #include "ui/pause.h"         /* drawPauseMenu                           */
 #include "ui/hud.h"           /* drawHUD, drawLevelBanner, drawMenuButton*/
+#include "ui/snow_down.h"     /* Global snow system manager              */
 
 /* ====================================================================== */
 /*                              MAIN                                      */
@@ -229,6 +232,10 @@ int main()
       setactivepage(1 - page);
       cleardevice();
       drawMainMenu(mx, my, isMusicEnabled());
+      
+      /* Hiệu ứng tuyết rơi toàn cục */
+      renderGlobalSnowEffect(1);
+      
       setvisualpage(1 - page);
       page = 1 - page;
       delay(20);
@@ -238,6 +245,10 @@ int main()
       setactivepage(1 - page);
       cleardevice();
       drawGuideScreen(mx, my);
+      
+      /* Hiệu ứng tuyết rơi toàn cục */
+      renderGlobalSnowEffect(1);
+      
       setvisualpage(1 - page);
       page = 1 - page;
       delay(20);
@@ -309,6 +320,10 @@ int main()
       drawExplosions(explosions, MAX_EXPLOSIONS);
       drawSkillEffects(&skills);
       drawShip(ship, mx, my, frameCount);
+      
+      /* Hiệu ứng tuyết rơi toàn cục */
+      renderGlobalSnowEffect(1);
+      
       drawHUD(score, hp, level, ship, &skills, gameSpeed);
 
       if (levelBanner > 0)
@@ -361,6 +376,9 @@ int main()
       /* Ve menu pause len tren */
       drawPauseMenu(mx, my);
 
+      /* Hiệu ứng tuyết rơi toàn cục */
+      renderGlobalSnowEffect(1);
+
       setvisualpage(1 - page);
       page = 1 - page;
       delay(20);
@@ -371,6 +389,10 @@ int main()
       setactivepage(1 - page);
       cleardevice();
       drawGameOverScreen(score, level, mx, my);
+      
+      /* Hiệu ứng tuyết rơi toàn cục */
+      renderGlobalSnowEffect(1);
+      
       setvisualpage(1 - page);
       page = 1 - page;
       delay(20);
